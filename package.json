@@ -1,0 +1,20 @@
+{
+  "name": "@symph/joy-admin",
+  "version": "v1.0.0",
+  "scripts": {
+    "dev": "joy dev",
+    "build": "joy build",
+    "start": "joy start"
+  },
+  "dependencies": {
+    "@symph/joy": "^2.0.0-canary.4",
+    "antd": "^4.17.0-alpha.9",
+    "less": "^4.1.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^17.0.1",
+    "@types/react-dom": "^17.0.1"
+  }
+}
