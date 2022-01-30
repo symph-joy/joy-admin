@@ -1,5 +1,6 @@
-import { Controller, Get, Query } from "@symph/server";
+import { Controller, Get, Query, Post, Body } from "@symph/server";
 import { RegisterService } from "../service/register.service";
+import { SendCodeReturn } from "../../common/register";
 
 @Controller()
 export class RegisterController {
@@ -13,11 +14,21 @@ export class RegisterController {
   }
 
   @Get("/sendEmailCode")
-  sendEmailCode(@Query("email") email: string): { data: boolean } {
+  async sendEmailCode(@Query("email") email: string): Promise<{ data: SendCodeReturn }> {
+    const { message, data } = await this.registerService.sendEmailCode(email);
     return {
-      data: this.registerService.sendEmailCode(email),
+      data: {
+        message,
+        data,
+      },
     };
   }
 
-  
+  @Post("/registerUser")
+  registerUser(@Body() values) {
+    console.log("values:", values);
+    return {
+      data: 123,
+    };
+  }
 }

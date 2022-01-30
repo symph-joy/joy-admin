@@ -42,21 +42,47 @@ let RegisterController = (_dec = (0, _react2.ReactController)(), _dec2 = (0, _co
     _initializerDefineProperty(this, "registerModel", _descriptor, this);
 
     this.state = {
-      IsExistEmail: true
+      IsExistEmail: true,
+      second: 60
     };
     this.formRef = _react.default.createRef();
 
     this.onFinish = values => {
-      console.log("Success:", values);
+      this.registerModel.registerUser(values);
     };
 
     this.sendEmailCode = async () => {
       const email = this.formRef.current?.getFieldValue("email");
-      await this.registerModel.sendEmailCode(email);
+      const data = await this.registerModel.sendEmailCode(email);
+
+      if (data.data) {
+        const Time = setInterval(() => {
+          const {
+            second
+          } = this.state;
+
+          if (second > 0) {
+            this.setState({
+              second: second - 1
+            });
+          } else {
+            this.setState({
+              second: 60
+            });
+            clearTimeout(Time);
+          }
+        }, 1000);
+      } else {
+        _antd.message.error(data.message);
+      }
     };
   }
 
   renderView() {
+    const {
+      IsExistEmail,
+      second
+    } = this.state;
     return _react.default.createElement('div', 'jsx placeholder');
   }
 

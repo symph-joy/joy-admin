@@ -10,6 +10,7 @@
     "@symph/joy": "^2.0.0-canary.4",
     "antd": "^4.17.0-alpha.9",
     "less": "^4.1.2",
+    "nodemailer": "6.7.2",
     "react": "^17.0.1",
     "react-dom": "^17.0.1"
   },

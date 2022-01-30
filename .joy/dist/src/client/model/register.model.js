@@ -30,14 +30,22 @@ let RegisterModel = (_dec = (0, _react.ReactModel)(), _dec2 = function (target, 
   async checkIsExistEmail(email) {
     const resp = await this.joyFetchService.fetchApi("/checkIsExistEmail?email=" + email);
     const respJson = await resp.json();
-    console.log(respJson);
     return respJson.data;
   }
 
   async sendEmailCode(email) {
     const resp = await this.joyFetchService.fetchApi("/sendEmailCode?email=" + email);
     const respJson = await resp.json();
-    console.log(respJson);
+    return respJson.data;
+  }
+
+  async registerUser(values) {
+    const resp = await this.joyFetchService.fetchApi("/registerUser", {
+      method: "POST",
+      body: JSON.stringify(values)
+    });
+    const respJson = await resp.json();
+    return respJson.data;
   }
 
 }) || _class) || _class) || _class) || _class);

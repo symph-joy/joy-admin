@@ -3,7 +3,7 @@ import { BaseReactController, ReactController } from "@symph/react";
 import { Inject } from "@symph/core";
 import { RegisterModel } from "../../model/register.model";
 import styles from "./index.less";
-import { Form, Input, Button, FormInstance } from "antd";
+import { Form, Input, Button, FormInstance, message } from "antd";
 import { RegisterUser } from "../../../common/register";
 import { emailReg } from "../../utils/RegExp";
 import { Link } from "@symph/react/router-dom";
@@ -17,20 +17,39 @@ export default class RegisterController extends BaseReactController {
 
   state = {
     IsExistEmail: true,
+    second: 60,
   };
 
   formRef: RefObject<FormInstance> = React.createRef();
 
   onFinish = (values: RegisterUser): void => {
-    console.log("Success:", values);
+    this.registerModel.registerUser(values)
   };
 
   sendEmailCode = async () => {
     const email = this.formRef.current?.getFieldValue("email");
-    await this.registerModel.sendEmailCode(email);
+    const data = await this.registerModel.sendEmailCode(email);
+    if (data.data) {
+      const Time = setInterval(() => {
+        const { second } = this.state;
+        if (second > 0) {
+          this.setState({
+            second: second - 1,
+          });
+        } else {
+          this.setState({
+            second: 60,
+          });
+          clearTimeout(Time);
+        }
+      }, 1000);
+    } else {
+      message.error(data.message);
+    }
   };
 
   renderView(): ReactNode {
+    const { IsExistEmail, second } = this.state;
     return (
       <>
         <h1 className={styles.title}>注册</h1>
@@ -91,12 +110,12 @@ export default class RegisterController extends BaseReactController {
           >
             <Input type="email" />
           </Form.Item>
-          {!this.state.IsExistEmail && (
+          {!IsExistEmail && (
             <>
-              <Form.Item label="验证码" name="emailCode" rules={[{ required: true, message: "请输入验证码！" }]}>
+              <Form.Item label="激活码" name="emailCode" rules={[{ required: true, message: "请输入验证码！" }]}>
                 <Input />
               </Form.Item>
-              <Button onClick={this.sendEmailCode}>发送验证码</Button>
+              {second === 60 ? <Button onClick={this.sendEmailCode}>发送激活码</Button> : <Button disabled>{second}s 后</Button>}
             </>
           )}
 

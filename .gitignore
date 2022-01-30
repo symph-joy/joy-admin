@@ -1,0 +1,17 @@
+config/*.local.*
+
+# build output
+dist
+.joy
+
+# dependencies
+node_modules
+
+# coverage
+.nyc_output
+coverage
+
+# others
+.DS_Store
+.idea
+*.iml
