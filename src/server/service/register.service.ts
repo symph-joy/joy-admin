@@ -2,6 +2,7 @@ import { Component, IComponentLifecycle } from "@symph/core";
 import { Value } from "@symph/config";
 import nodemailer from "nodemailer";
 import { SendCodeReturn, EmailOption, RegisterUser } from "../../common/register";
+// import { EmailCodeText } from "../../client/utils/constUtils";
 @Component()
 export class RegisterService implements IComponentLifecycle {
   @Value({ configKey: "emailOptions" })
@@ -21,7 +22,7 @@ export class RegisterService implements IComponentLifecycle {
   // 获取数据库中所有邮箱；未完成
   private getAllEmail(): Array<string> {
     // 数据库拿所有Email数据
-    return ['wangyi11860@163.com'];
+    return ["wangyi11860@163.com"];
   }
 
   // 向邮箱发送验证码

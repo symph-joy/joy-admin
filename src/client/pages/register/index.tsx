@@ -9,6 +9,7 @@ import { emailReg } from "../../utils/RegExp";
 import { Link } from "@symph/react/router-dom";
 import { noUsername, noPassword, noEmail, EmailErrorMessage, EmailExistMessage } from "../../utils/constUtils";
 import { RefObject } from "react";
+import _ from "lodash";
 
 @ReactController()
 export default class RegisterController extends BaseReactController {
@@ -18,22 +19,27 @@ export default class RegisterController extends BaseReactController {
   state = {
     IsExistEmail: true,
     second: 60,
+    registering: false,
   };
 
   formRef: RefObject<FormInstance> = React.createRef();
 
   onFinish = async (values: RegisterUser) => {
+    this.setState({
+      registering: true,
+    });
     const res = await this.registerModel.registerUser(values);
-    console.log(res);
-    
-    if(res.code === 10000) {
-      message.success(res.message)
+    if (res.code === 10000) {
+      message.success(res.message);
       setTimeout(() => {
-        location.href = '/login'
-      }, 500)
+        location.href = "/login";
+      }, 500);
     } else {
-      message.error(res.message)
+      message.error(res.message);
     }
+    this.setState({
+      registering: false,
+    });
   };
 
   sendEmailCode = async () => {
@@ -59,7 +65,7 @@ export default class RegisterController extends BaseReactController {
   };
 
   renderView(): ReactNode {
-    const { IsExistEmail, second } = this.state;
+    const { IsExistEmail, second, registering } = this.state;
     return (
       <>
         <h1 className={styles.title}>注册</h1>
@@ -130,9 +136,16 @@ export default class RegisterController extends BaseReactController {
           )}
 
           <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-            <Button type="primary" htmlType="submit">
-              注册
-            </Button>
+            {registering ? (
+              <Button disabled type="dashed">
+                注册中...
+              </Button>
+            ) : (
+              <Button type="primary" htmlType="submit">
+                注册
+              </Button>
+            )}
+
             <Button type="primary">
               <Link to={"/login"}>登录</Link>
             </Button>
