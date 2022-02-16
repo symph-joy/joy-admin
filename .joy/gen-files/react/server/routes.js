@@ -10,7 +10,7 @@ export const joyReactAutoGenRoutes =   [
     
     componentName: "joyErrorComponent",
     
-    componentModule: require("/Users/wangyi767/Desktop/symph/symph-joy/packages/joy/dist/pages/_error.js"),
+    componentModule: require("/Users/wangyi767/Desktop/symph-joy/packages/joy/dist/pages/_error.js"),
     children:   [
   ]
 
@@ -23,7 +23,7 @@ export const joyReactAutoGenRoutes =   [
     
     componentName: "loginController",
     
-    componentModule: require("/Users/wangyi767/Desktop/symph/symph-joy/packages/joy-admin/src/client/pages/login/index.tsx"),
+    componentModule: require("/Users/wangyi767/Desktop/symph-joy/packages/joy-admin/src/client/pages/login/index.tsx"),
     children:   [
   ]
 
@@ -36,7 +36,7 @@ export const joyReactAutoGenRoutes =   [
     
     componentName: "registerController",
     
-    componentModule: require("/Users/wangyi767/Desktop/symph/symph-joy/packages/joy-admin/src/client/pages/register/index.tsx"),
+    componentModule: require("/Users/wangyi767/Desktop/symph-joy/packages/joy-admin/src/client/pages/register/index.tsx"),
     children:   [
   ]
 

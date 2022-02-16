@@ -1,6 +1,6 @@
 import { Controller, Get, Query, Post, Body } from "@symph/server";
 import { RegisterService } from "../service/register.service";
-import { SendCodeReturn } from "../../common/register";
+import { SendCodeReturn, RegisterUser } from "../../common/register";
 
 @Controller()
 export class RegisterController {
@@ -25,10 +25,9 @@ export class RegisterController {
   }
 
   @Post("/registerUser")
-  registerUser(@Body() values) {
-    console.log("values:", values);
+  registerUser(@Body() values: RegisterUser) {
     return {
-      data: 123,
+      data: this.registerService.registerUser(values),
     };
   }
 }

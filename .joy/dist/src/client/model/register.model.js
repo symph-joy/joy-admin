@@ -22,9 +22,7 @@ let RegisterModel = (_dec = (0, _react.ReactModel)(), _dec2 = function (target, 
   }
 
   getInitState() {
-    return {
-      email: ""
-    };
+    return {};
   }
 
   async checkIsExistEmail(email) {

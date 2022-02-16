@@ -2,9 +2,8 @@
   "name": "@symph/joy-admin",
   "version": "v1.0.0",
   "scripts": {
-    "dev": "joy dev",
-    "build": "joy build",
-    "start": "joy start"
+    "joy-dev": "joy dev",
+    "joy-build": "joy build"
   },
   "dependencies": {
     "@symph/joy": "^2.0.0-canary.4",

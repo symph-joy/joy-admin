@@ -22,8 +22,18 @@ export default class RegisterController extends BaseReactController {
 
   formRef: RefObject<FormInstance> = React.createRef();
 
-  onFinish = (values: RegisterUser): void => {
-    this.registerModel.registerUser(values)
+  onFinish = async (values: RegisterUser) => {
+    const res = await this.registerModel.registerUser(values);
+    console.log(res);
+    
+    if(res.code === 10000) {
+      message.success(res.message)
+      setTimeout(() => {
+        location.href = '/login'
+      }, 500)
+    } else {
+      message.error(res.message)
+    }
   };
 
   sendEmailCode = async () => {

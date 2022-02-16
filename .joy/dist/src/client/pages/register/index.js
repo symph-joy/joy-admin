@@ -47,8 +47,19 @@ let RegisterController = (_dec = (0, _react2.ReactController)(), _dec2 = (0, _co
     };
     this.formRef = _react.default.createRef();
 
-    this.onFinish = values => {
-      this.registerModel.registerUser(values);
+    this.onFinish = async values => {
+      const res = await this.registerModel.registerUser(values);
+      console.log(res);
+
+      if (res.code === 10000) {
+        _antd.message.success(res.message);
+
+        setTimeout(() => {
+          location.href = '/login';
+        }, 500);
+      } else {
+        _antd.message.error(res.message);
+      }
     };
 
     this.sendEmailCode = async () => {

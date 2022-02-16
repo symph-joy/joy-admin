@@ -9,7 +9,7 @@ export class RegisterModel extends BaseReactModel<RegisterModelState> {
   }
 
   getInitState(): RegisterModelState {
-    return { email: "" };
+    return {};
   }
 
   async checkIsExistEmail(email: string): Promise<boolean> {

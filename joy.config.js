@@ -7,4 +7,5 @@ module.exports = {
       pass: "LLJVFVIPOVJOVLIH",
     },
   },
+  mailTitle: "@sympy/joy-admin注册用户激活码",
 };
