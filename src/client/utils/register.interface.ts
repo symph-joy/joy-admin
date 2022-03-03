@@ -1,22 +1,10 @@
 export interface RegisterUser {
-  username: string;
   password: string;
   email: string;
   emailCode: string;
 }
-export interface User {
-  username: string;
-  password: string;
-  email: string;
-  id: string;
-}
 
 export type RegisterModelState = {};
-
-export interface SendCodeReturn {
-  message: string;
-  data: boolean;
-}
 
 export interface EmailOption {
   host: string;
@@ -26,4 +14,11 @@ export interface EmailOption {
     user: string;
     pass: string;
   };
+}
+
+export interface MailOptions {
+  from: string; // 发送者
+  to: string; // 接受者,可以同时发送多个,以逗号隔开
+  subject: string; // 标题
+  html: string;
 }

@@ -11,7 +11,13 @@
     "less": "^4.1.2",
     "nodemailer": "6.7.2",
     "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react-dom": "^17.0.1",
+    "svg-captcha": "^1.4.0",
+    "typeorm": "^0.2.42",
+    "mongodb": "^4.4.0",
+    "uuid": "^8.3.2",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^8.5.1"
   },
   "devDependencies": {
     "@types/react": "^17.0.1",

@@ -2,24 +2,57 @@ import React, { ReactNode } from "react";
 import { BaseReactController, ReactController } from "@symph/react";
 import { Inject } from "@symph/core";
 import { RegisterModel } from "../../model/register.model";
+import { CaptchaModel } from "../../model/captcha.model";
 import styles from "./index.less";
-import { Form, Input, Button, FormInstance, message } from "antd";
-import { RegisterUser } from "../../../common/register";
+import { Form, Input, Button, FormInstance, message, Modal } from "antd";
+import { RegisterUser } from "../../utils/register.interface";
 import { emailReg } from "../../utils/RegExp";
 import { Link } from "@symph/react/router-dom";
-import { noUsername, noPassword, noEmail, EmailErrorMessage, EmailExistMessage } from "../../utils/constUtils";
+import {
+  noCaptcha,
+  noPassword,
+  noEmail,
+  EmailErrorMessage,
+  EmailExistMessage,
+  noEmailCode,
+  RegisterText,
+  PasswordText,
+  EmailText,
+  EmailCodeText,
+  SendEmailCode,
+  LoginText,
+  Sending,
+  Registering,
+  SecondAfter,
+  SuccessCode,
+  CaptchaText,
+  okText,
+  cancelText,
+  NotExistPublicKey,
+} from "../../utils/constUtils";
 import { RefObject } from "react";
-import _ from "lodash";
+import { passwordField, emailField, emailCodeField, captchaField, publicKeyField } from "../../utils/apiField";
+import { PasswordModel } from "../../model/password.model";
 
 @ReactController()
 export default class RegisterController extends BaseReactController {
   @Inject()
   public registerModel: RegisterModel;
 
+  @Inject()
+  public captchaModel: CaptchaModel;
+
+  @Inject()
+  public passwordModel: PasswordModel;
+
   state = {
     IsExistEmail: true,
     second: 60,
     registering: false,
+    sending: false,
+    showModal: false,
+    captchaImg: "",
+    captchaId: "",
   };
 
   formRef: RefObject<FormInstance> = React.createRef();
@@ -29,12 +62,15 @@ export default class RegisterController extends BaseReactController {
       registering: true,
     });
     const res = await this.registerModel.registerUser(values);
-    if (res.code === 10000) {
+    if (res.code === SuccessCode) {
       message.success(res.message);
       setTimeout(() => {
-        location.href = "/login";
-      }, 500);
+        this.props.navigate("/login");
+      }, 1000);
     } else {
+      if (res.message === NotExistPublicKey) {
+        localStorage.removeItem(publicKeyField);
+      }
       message.error(res.message);
     }
     this.setState({
@@ -42,10 +78,24 @@ export default class RegisterController extends BaseReactController {
     });
   };
 
+  showModal = () => {
+    this.setState({
+      showModal: true,
+    });
+    this.refreshCaptchaImg();
+  };
+
   sendEmailCode = async () => {
-    const email = this.formRef.current?.getFieldValue("email");
-    const data = await this.registerModel.sendEmailCode(email);
-    if (data.data) {
+    const email = this.formRef.current?.getFieldValue(emailField);
+    this.setState({
+      sending: true,
+    });
+    const res = await this.registerModel.sendEmailCode(email);
+    this.setState({
+      sending: false,
+    });
+    if (res.code === SuccessCode) {
+      message.success(res.message);
       const Time = setInterval(() => {
         const { second } = this.state;
         if (second > 0) {
@@ -60,27 +110,51 @@ export default class RegisterController extends BaseReactController {
         }
       }, 1000);
     } else {
-      message.error(data.message);
+      message.error(res.message);
     }
   };
 
+  handleOk = async () => {
+    const captcha = this.formRef.current.getFieldValue(captchaField);
+    if (captcha) {
+      const res = await this.captchaModel.checkCaptcha({
+        captcha,
+        captchaId: this.state.captchaId,
+      });
+      if (res.code !== SuccessCode) {
+        message.error(res.message);
+      } else {
+        this.setState({
+          showModal: false,
+        });
+        this.sendEmailCode();
+      }
+    }
+  };
+
+  handleCancel = () => {
+    this.setState({
+      showModal: false,
+    });
+  };
+
+  refreshCaptchaImg = async () => {
+    const { captchaId, captchaImg } = await this.captchaModel.getCaptchaImg();
+    this.setState({
+      captchaImg,
+      captchaId,
+    });
+  };
+
   renderView(): ReactNode {
-    const { IsExistEmail, second, registering } = this.state;
+    const { IsExistEmail, second, registering, sending, showModal, captchaImg } = this.state;
     return (
       <>
-        <h1 className={styles.title}>注册</h1>
+        <h1 className={styles.title}>{RegisterText}</h1>
         <Form ref={this.formRef} className={styles.registerForm} name="register" onFinish={this.onFinish} autoComplete="off">
-          <Form.Item label="用户名" name="username" rules={[{ required: true, message: noUsername }]}>
-            <Input />
-          </Form.Item>
-
-          <Form.Item label="密码" name="password" rules={[{ required: true, message: noPassword }]}>
-            <Input.Password />
-          </Form.Item>
-
           <Form.Item
-            label="邮箱"
-            name="email"
+            label={EmailText}
+            name={emailField}
             rules={[
               ({ setFieldsValue }) => ({
                 required: true,
@@ -128,26 +202,46 @@ export default class RegisterController extends BaseReactController {
           </Form.Item>
           {!IsExistEmail && (
             <>
-              <Form.Item label="激活码" name="emailCode" rules={[{ required: true, message: "请输入验证码！" }]}>
+              <Form.Item label={EmailCodeText} name={emailCodeField} rules={[{ required: true, message: noEmailCode }]}>
                 <Input />
               </Form.Item>
-              {second === 60 ? <Button onClick={this.sendEmailCode}>发送激活码</Button> : <Button disabled>{second}s 后</Button>}
+
+              {second === 60 && !sending ? (
+                <Button onClick={this.showModal}>{SendEmailCode}</Button>
+              ) : sending ? (
+                <Button disabled>{Sending}</Button>
+              ) : (
+                <Button disabled>
+                  {second}
+                  {SecondAfter}
+                </Button>
+              )}
             </>
           )}
+          <Modal okText={okText} cancelText={cancelText} title={noCaptcha} visible={showModal} onOk={this.handleOk} onCancel={this.handleCancel}>
+            <Form.Item className={styles.captcha} label={CaptchaText} name={captchaField} rules={[{ required: true, message: noCaptcha }]}>
+              <Input autoComplete="off" />
+            </Form.Item>
+            <div onClick={this.refreshCaptchaImg} dangerouslySetInnerHTML={{ __html: captchaImg }}></div>
+          </Modal>
+
+          <Form.Item label={PasswordText} name={passwordField} rules={[{ required: true, message: noPassword }]}>
+            <Input.Password />
+          </Form.Item>
 
           <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
             {registering ? (
               <Button disabled type="dashed">
-                注册中...
+                {Registering}
               </Button>
             ) : (
               <Button type="primary" htmlType="submit">
-                注册
+                {RegisterText}
               </Button>
             )}
 
             <Button type="primary">
-              <Link to={"/login"}>登录</Link>
+              <Link to={"/login"}>{LoginText}</Link>
             </Button>
           </Form.Item>
         </Form>

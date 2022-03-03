@@ -1,8 +1,30 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import { Value } from "@symph/config";
 import nodemailer from "nodemailer";
-import { SendCodeReturn, EmailOption, RegisterUser } from "../../common/register";
-// import { EmailCodeText } from "../../client/utils/constUtils";
+import { EmailOption, RegisterUser, MailOptions } from "../../client/utils/register.interface";
+import { SendCodeReturn } from "../../client/utils/common.interface";
+import {
+  EmailCodeText,
+  SendSuccess,
+  NotExistEmailCode,
+  NotExistCode,
+  EmailCodeWrong,
+  SuccessCode,
+  WrongCode,
+  EmailCodeRight,
+  RegisterSuccess,
+  RegisterFail,
+} from "../../client/utils/constUtils";
+import { emailCodeField, emailField, passwordField, publicKeyField } from "../../client/utils/apiField";
+import { getConnection } from "typeorm";
+import { User } from "../../client/utils/entity/UserDB";
+import { EmailCodeDB } from "../../client/utils/entity/EmailCodeDB";
+import { PasswordDB } from "../../client/utils/entity/PasswordDB";
+import { Account } from "../../client/utils/entity/AccountDB";
+import svgCaptcha from "svg-captcha";
+import bcrypt from "bcryptjs";
+import { v1 as uuidv1 } from "uuid";
+import { PasswordService } from "./password.service";
 @Component()
 export class RegisterService implements IComponentLifecycle {
   @Value({ configKey: "emailOptions" })
@@ -11,94 +33,150 @@ export class RegisterService implements IComponentLifecycle {
   @Value({ configKey: "mailTitle" })
   public mailTitle: string;
 
+  public connection = getConnection();
+
+  constructor(private passwordService: PasswordService) {}
+
   initialize() {}
 
-  // 检查是否存在该邮箱
-  public checkIsExistEmail(email: string): boolean {
-    const allEmails = this.getAllEmail();
-    return allEmails.includes(email);
+  // 邮箱是否存在
+  public async checkIsExistEmail(email: string): Promise<boolean> {
+    const res = await this.connection.manager.findOne(User, { email });
+    return res ? true : false;
   }
 
-  // 获取数据库中所有邮箱；未完成
-  private getAllEmail(): Array<string> {
-    // 数据库拿所有Email数据
-    return ["wangyi11860@163.com"];
-  }
-
-  // 向邮箱发送验证码
+  // 向邮箱发送激活码
   public async sendEmailCode(email: string): Promise<SendCodeReturn> {
-    const emailCode = this.getEmailCodeFromDB();
+    const emailCode = this.getEmailCode();
     const transporter = nodemailer.createTransport(this.configEmailOptions);
     const mailOptions = {
       from: this.configEmailOptions.auth.user, // 发送者
       to: email, // 接受者,可以同时发送多个,以逗号隔开
       subject: this.mailTitle, // 标题
-      html: `<h1>${this.mailTitle}</h1><h3>激活码${emailCode}</h3>`,
+      html: `<h1>${this.mailTitle}</h1><h3>${EmailCodeText}${emailCode}</h3>`,
     };
     try {
-      return await this.sendEmail(transporter, mailOptions);
+      return await this.sendEmail(transporter, mailOptions, email, emailCode);
     } catch (error) {
       return error;
     }
   }
 
   // 发送邮件
-  private sendEmail(transporter, mailOptions): Promise<SendCodeReturn> {
-    return new Promise((resolve, reject) => {
-      transporter.sendMail(mailOptions, (err, info) => {
+  private sendEmail(transporter, mailOptions: MailOptions, email: string, emailCode: string): Promise<SendCodeReturn> {
+    return new Promise(async (resolve, reject) => {
+      transporter.sendMail(mailOptions, async (err, info) => {
         if (err) {
           console.log(err);
-          reject({ message: "发送失败", data: false });
+          reject({ message: err.response, code: WrongCode });
         } else {
+          // 邮件发送成功再存数据库
+          await this.bindEmailAndEmailCode(email, emailCode);
           console.log("senEmailSuccess:", info);
-          resolve({ message: "发送成功", data: true });
+          resolve({ message: SendSuccess, code: SuccessCode });
         }
       });
     });
   }
 
-  // 从数据库随机获取验证码；未完成
-  private getEmailCodeFromDB(): number {
-    // 从数据库中随机取一个code
-    return 1234;
+  // 随机获取激活码
+  private getEmailCode(): string {
+    const captcha = svgCaptcha.create({
+      inverse: false, // 翻转颜色
+      fontSize: 48, // 字体大小
+      noise: 2, // 噪声线条数
+      size: 4, // 验证码长度
+      ignoreChars: "0o1i", // 验证码字符中排除 0o1i
+    });
+    const emailCode = captcha.text.toLowerCase();
+    return emailCode;
   }
 
-  // 在数据库中将邮箱和验证码进行绑定；未完成
-  private bindEmailAndEmailCode(email: string, emailCode: number) {
-    // 绑定email和emailCode存在数据库中
-    // 设置激活码期限
-  }
-
-  // 在数据库中解除邮箱和验证码绑定
-  private unbindEmailAndEmailCode(email: string, emailCode: number) {
-    // 解除绑定email和emailCode存在数据库中
+  // 在数据库中将邮箱和激活码进行绑定
+  private async bindEmailAndEmailCode(email: string, emailCode: string): Promise<void> {
+    const emailCodeDB = new EmailCodeDB();
+    // 先将数据库中关于该email的其它删除
+    await this.connection.manager.delete(EmailCodeDB, { email });
+    emailCodeDB.email = email;
+    emailCodeDB.emailCode = emailCode;
+    const date = new Date();
+    const min = date.getMinutes();
+    date.setMinutes(min + 5);
+    emailCodeDB.expiration = date.getTime();
+    await this.connection.manager.save(emailCodeDB);
   }
 
   // 注册用户
-  public registerUser(values: RegisterUser) {
-    const { username, password, email, emailCode } = values;
-    if (this.checkIsExistEmail(email)) {
+  public async registerUser(values: RegisterUser): Promise<SendCodeReturn> {
+    const email = values[emailField];
+    const emailCode = values[emailCodeField];
+    const res = await this.checkEmailCodeIsRight(email, emailCode);
+    if (res.code !== SuccessCode) {
+      return res;
+    }
+    // 密钥过期提前判断
+    const decryptRes = await this.passwordService.decrypt(values[passwordField], values[publicKeyField]);
+    if (decryptRes.code === WrongCode) {
+      return decryptRes;
+    }
+    const username = uuidv1();
+    const user = new User();
+    user.username = username;
+    user.email = email;
+    const userRes = await this.connection.manager.save(user);
+    if (userRes._id) {
+      // 注册成功删除激活码
+      this.connection.manager.delete(EmailCodeDB, { email });
+      const passwordDB = new PasswordDB();
+      const passwordReal = decryptRes.data;
+      const salt = bcrypt.genSaltSync(10);
+      const password = bcrypt.hashSync(passwordReal, salt);
+      passwordDB.password = password;
+      passwordDB.userId = userRes._id;
+      const account = new Account();
+      account.email = email;
+      account.username = username;
+      account.userId = userRes._id;
+      account.wrongTime = 0;
+      const res = await Promise.all([this.connection.manager.save(passwordDB), this.connection.manager.save(account)]);
+      if (res[0]._id && res[1]._id) {
+        return {
+          code: SuccessCode,
+          message: RegisterSuccess,
+        };
+      } else {
+        return {
+          code: WrongCode,
+          message: RegisterFail,
+        };
+      }
+    } else {
       return {
-        message: "该邮箱已注册",
-        code: 10001,
+        code: WrongCode,
+        message: RegisterFail,
       };
     }
-    if (!this.checkEmailCodeIsRight) {
-      return {
-        message: "验证码错误",
-        code: 10002,
-      };
-    }
-    // 存一个user数据
-    // db.users.insert({username, password, email })
-    return {
-      message: "注册成功",
-      code: 10000,
-    };
   }
 
-  // 验证邮箱和验证码是否匹配；未完成
-  private checkEmailCodeIsRight(email: string, emailCode: string): boolean {
-    return true;
+  // 验证邮箱和激活码是否匹配
+  private async checkEmailCodeIsRight(email: string, emailCode: string): Promise<SendCodeReturn> {
+    const res = await this.connection.manager.findOne(EmailCodeDB, { email });
+    if (!res) {
+      return {
+        code: NotExistCode,
+        message: NotExistEmailCode,
+      };
+    }
+    if (res?.emailCode === emailCode.toLowerCase()) {
+      return {
+        code: SuccessCode,
+        message: EmailCodeRight,
+      };
+    } else {
+      return {
+        code: WrongCode,
+        message: EmailCodeWrong,
+      };
+    }
   }
 }

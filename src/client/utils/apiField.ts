@@ -1,0 +1,8 @@
+export const usernameField = 'username'
+export const passwordField = 'password'
+export const emailField = 'email'
+export const emailCodeField = 'emailCode'
+export const captchaField = 'captcha'
+export const captchaIdField = 'captchaId'
+export const rememberPasswordField = 'rememberPassword'
+export const publicKeyField = 'publicKey'

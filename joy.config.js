@@ -8,4 +8,13 @@ module.exports = {
     },
   },
   mailTitle: "@sympy/joy-admin注册用户激活码",
+  dbOptions: {
+    type: "mongodb",
+    host: "localhost",
+    port: 27017,
+    username: "root",
+    password: "root",
+    database: "test",
+  },
+  secret: "Symph-joy",
 };

@@ -1,33 +1,29 @@
 import { Controller, Get, Query, Post, Body } from "@symph/server";
 import { RegisterService } from "../service/register.service";
-import { SendCodeReturn, RegisterUser } from "../../common/register";
+import { SendCodeReturn } from "../../client/utils/common.interface";
 
 @Controller()
 export class RegisterController {
   constructor(private registerService: RegisterService) {}
 
   @Get("/checkIsExistEmail")
-  checkIsExistEmail(@Query("email") email: string): { data: boolean } {
+  async checkIsExistEmail(@Query("value") value: string): Promise<{ data: boolean }> {
     return {
-      data: this.registerService.checkIsExistEmail(email),
+      data: await this.registerService.checkIsExistEmail(value),
     };
   }
 
   @Get("/sendEmailCode")
   async sendEmailCode(@Query("email") email: string): Promise<{ data: SendCodeReturn }> {
-    const { message, data } = await this.registerService.sendEmailCode(email);
     return {
-      data: {
-        message,
-        data,
-      },
+      data: await this.registerService.sendEmailCode(email),
     };
   }
 
   @Post("/registerUser")
-  registerUser(@Body() values: RegisterUser) {
+  async registerUser(@Body() values: string) {
     return {
-      data: this.registerService.registerUser(values),
+      data: await this.registerService.registerUser(JSON.parse(values)),
     };
   }
 }
