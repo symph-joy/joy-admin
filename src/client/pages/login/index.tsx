@@ -17,11 +17,11 @@ import {
   EmailText,
   noEmail,
   InputEmailOrUsername,
-} from "../../utils/constUtils";
+} from "../../../utils/constUtils";
 import { LoginModel } from "../../model/login.model";
 import { CaptchaModel } from "../../model/captcha.model";
-import { passwordField, captchaField, rememberPasswordField, emailField } from "../../utils/apiField";
-import { LoginUser } from "../../utils/login.interface";
+import { passwordField, captchaField, rememberPasswordField, emailField } from "../../../utils/apiField";
+import { LoginUser } from "../../../utils/login.interface";
 import { PasswordModel } from "../../model/password.model";
 
 @ReactController()
@@ -96,14 +96,14 @@ export default class LoginController extends BaseReactController {
   };
 
   componentDidMount(): void {
-    const email = localStorage.getItem(emailField);
-    const password = localStorage.getItem(passwordField);
-    if (email && password) {
-      this.formRef.current.setFieldsValue({ email, password, rememberPassword: true });
-      this.setState({
-        hasEncrypt: true,
-      });
-    }
+    // const email = localStorage.getItem(emailField);
+    // const password = localStorage.getItem(passwordField);
+    // if (email && password) {
+    //   this.formRef.current.setFieldsValue({ email, password, rememberPassword: true });
+    //   this.setState({
+    //     hasEncrypt: true,
+    //   });
+    // }
   }
 
   renderView(): ReactNode {

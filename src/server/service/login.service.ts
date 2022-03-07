@@ -1,5 +1,5 @@
 import { Component, IComponentLifecycle } from "@symph/core";
-import { LoginUser } from "../../client/utils/login.interface";
+import { LoginUser } from "../../utils/login.interface";
 import {
   WrongCode,
   SuccessCode,
@@ -9,22 +9,22 @@ import {
   NotExistUsernameOrEmail,
   PasswordWrong,
   LoginSuccess,
-} from "../../client/utils/constUtils";
-import { passwordField, captchaField, captchaIdField, emailField, publicKeyField } from "../../client/utils/apiField";
-import { getConnection } from "typeorm";
-import { CaptchaDB } from "../../client/utils/entity/CaptchaDB";
+} from "../../utils/constUtils";
+import { passwordField, captchaField, captchaIdField, emailField, publicKeyField } from "../../utils/apiField";
+import { DBService } from "./db.service";
+import { CaptchaDB } from "../../utils/entity/CaptchaDB";
 import bcrypt from "bcryptjs";
-import { SendCodeReturn } from "../../client/utils/common.interface";
-import { PasswordDB } from "../../client/utils/entity/PasswordDB";
+import { SendCodeReturn } from "../../utils/common.interface";
+import { PasswordDB } from "../../utils/entity/PasswordDB";
 import { AuthService } from "./auth.service";
-import { Account } from "../../client/utils/entity/AccountDB";
+import { Account } from "../../utils/entity/AccountDB";
 import { PasswordService } from "./password.service";
 
 @Component()
 export class LoginService implements IComponentLifecycle {
-  public connection = getConnection();
+  constructor(private authService: AuthService, private passwordService: PasswordService, private dbService: DBService) {}
 
-  constructor(private authService: AuthService, private passwordService: PasswordService) {}
+  public connection = this.dbService.connection;
 
   initialize() {}
 

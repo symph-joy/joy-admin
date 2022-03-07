@@ -5,8 +5,8 @@ import { RegisterModel } from "../../model/register.model";
 import { CaptchaModel } from "../../model/captcha.model";
 import styles from "./index.less";
 import { Form, Input, Button, FormInstance, message, Modal } from "antd";
-import { RegisterUser } from "../../utils/register.interface";
-import { emailReg } from "../../utils/RegExp";
+import { RegisterUser } from "../../../utils/register.interface";
+import { emailReg } from "../../../utils/RegExp";
 import { Link } from "@symph/react/router-dom";
 import {
   noCaptcha,
@@ -29,9 +29,9 @@ import {
   okText,
   cancelText,
   NotExistPublicKey,
-} from "../../utils/constUtils";
+} from "../../../utils/constUtils";
 import { RefObject } from "react";
-import { passwordField, emailField, emailCodeField, captchaField, publicKeyField } from "../../utils/apiField";
+import { passwordField, emailField, emailCodeField, captchaField, publicKeyField } from "../../../utils/apiField";
 import { PasswordModel } from "../../model/password.model";
 
 @ReactController()
@@ -61,7 +61,7 @@ export default class RegisterController extends BaseReactController {
     this.setState({
       registering: true,
     });
-    const res = await this.registerModel.registerUser(values);
+    const res = await this.registerModel.register(values);
     if (res.code === SuccessCode) {
       message.success(res.message);
       setTimeout(() => {
@@ -146,6 +146,8 @@ export default class RegisterController extends BaseReactController {
     });
   };
 
+  handleBlur = () => {};
+
   renderView(): ReactNode {
     const { IsExistEmail, second, registering, sending, showModal, captchaImg } = this.state;
     return (
@@ -155,9 +157,13 @@ export default class RegisterController extends BaseReactController {
           <Form.Item
             label={EmailText}
             name={emailField}
+            validateTrigger={["onBlur", "onChange"]}
             rules={[
+              { required: true, message: noEmail, validateTrigger: "onChange" },
+              { pattern: emailReg, message: EmailErrorMessage, validateTrigger: "onChange" },
               ({ setFieldsValue }) => ({
                 required: true,
+                validateTrigger: "onBlur",
                 validator: async (_, value) => {
                   if (value) {
                     if (emailReg.test(value)) {

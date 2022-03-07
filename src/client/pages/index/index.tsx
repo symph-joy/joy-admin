@@ -2,8 +2,9 @@ import React, { ReactNode } from "react";
 import { BaseReactController, ReactController } from "@symph/react";
 import { UserModel } from "../../model/user.model";
 import { Inject } from "@symph/core";
-import { SuccessCode, WrongToken } from "../../utils/constUtils";
-import { message } from "antd";
+import { SuccessCode, WrongToken } from "../../../utils/constUtils";
+import { Button, message } from "antd";
+import { Link } from "@symph/react/router-dom";
 
 @ReactController()
 export default class IndexController extends BaseReactController {
@@ -29,6 +30,12 @@ export default class IndexController extends BaseReactController {
     }
   }
   renderView(): ReactNode {
-    return <>首页</>;
+    return (
+      <>
+        <Button>
+          <Link to="/account">个人中心</Link>
+        </Button>
+      </>
+    );
   }
 }

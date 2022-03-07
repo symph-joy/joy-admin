@@ -5,8 +5,22 @@ export interface UserInterface {
   _id: ObjectID;
   username: string;
 }
+
+export interface PasswordInterface {
+  password: string;
+  _id: ObjectID;
+  userId: ObjectID;
+}
+export interface AccountInterface {
+  _id: ObjectID;
+  email: string;
+  username: string;
+  userId: ObjectID;
+  wrongTime: number;
+}
+
 export interface SendCodeReturn {
-  data?: string | UserInterface | Payload;
+  data?: string | UserInterface | PasswordInterface | AccountInterface | Payload;
   message: string;
   code: number;
 }

@@ -1,14 +1,18 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import svgCaptcha from "svg-captcha";
-import { Captcha, CaptchaImg, SendCodeReturn } from "../../client/utils/common.interface";
+import { Captcha, CaptchaImg, SendCodeReturn } from "../../utils/common.interface";
 import { v1 as uuidv1 } from "uuid";
-import { getConnection } from "typeorm";
-import { CaptchaDB } from "../../client/utils/entity/CaptchaDB";
-import { captchaField, captchaIdField } from "../../client/utils/apiField";
-import { CaptchaRight, CaptchaWrong, NotExistCaptcha, NotExistCode, SuccessCode, WrongCode } from "../../client/utils/constUtils";
+import { DBService } from "./db.service";
+import { CaptchaDB } from "../../utils/entity/CaptchaDB";
+import { captchaField, captchaIdField } from "../../utils/apiField";
+import { CaptchaRight, CaptchaWrong, NotExistCaptcha, NotExistCode, SuccessCode, WrongCode } from "../../utils/constUtils";
 
 @Component()
 export class CaptchaService implements IComponentLifecycle {
+  constructor(private dbService: DBService) {}
+
+  public connection = this.dbService.connection;
+
   initialize() {}
 
   // 获取验证码
@@ -28,7 +32,7 @@ export class CaptchaService implements IComponentLifecycle {
     const min = date.getMinutes();
     date.setMinutes(min + 5);
     captchaDb.expiration = date.getTime();
-    await getConnection().manager.save(captchaDb);
+    await this.connection.manager.save(captchaDb);
     return {
       captchaImg: captcha.data,
       captchaId,
@@ -38,11 +42,19 @@ export class CaptchaService implements IComponentLifecycle {
   public async checkCaptcha(values: Captcha): Promise<SendCodeReturn> {
     const captchaInput = values[captchaField];
     const captchaId = values[captchaIdField];
-    const captchaDB = await getConnection().manager.findOne(CaptchaDB, { captchaId });
+    const captchaDB = await this.connection.manager.findOne(CaptchaDB, { captchaId });
     if (!captchaDB) {
       return {
         message: NotExistCaptcha,
         code: NotExistCode,
+      };
+    }
+    const date = new Date().getTime();
+    if (captchaDB.expiration < date) {
+      this.connection.manager.delete(CaptchaDB, captchaDB);
+      return {
+        code: WrongCode,
+        message: NotExistCaptcha,
       };
     }
     if (captchaDB.captcha !== captchaInput.toLowerCase()) {
@@ -51,7 +63,7 @@ export class CaptchaService implements IComponentLifecycle {
         code: WrongCode,
       };
     }
-    getConnection().manager.delete(CaptchaDB, captchaDB);
+    this.connection.manager.delete(CaptchaDB, captchaDB);
     return {
       message: CaptchaRight,
       code: SuccessCode,

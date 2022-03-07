@@ -1,9 +1,9 @@
 import { ReactModel, BaseReactModel } from "@symph/react";
 import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
-import { LoginUser } from "../utils/login.interface";
+import { LoginUser } from "../../utils/login.interface";
 import { PasswordModel } from "./password.model";
-import { SendCodeReturn } from "../utils/common.interface";
+import { SendCodeReturn } from "../../utils/common.interface";
 @ReactModel()
 export class LoginModel extends BaseReactModel<{}> {
   constructor(@Inject("joyFetchService") private joyFetchService: ReactFetchService, private passwordModel: PasswordModel) {

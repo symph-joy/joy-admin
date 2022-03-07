@@ -1,10 +1,11 @@
 import { ReactModel, BaseReactModel } from "@symph/react";
 import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
-import { LoginUser } from "../utils/login.interface";
+import { LoginUser } from "../../utils/login.interface";
 import { publicEncrypt } from "crypto";
-import { passwordField, publicKeyField } from "../utils/apiField";
-import { RegisterUser } from "../utils/register.interface";
+import { passwordField, publicKeyField } from "../../utils/apiField";
+import { RegisterUser } from "../../utils/register.interface";
+import crypto from "crypto";
 
 @ReactModel()
 export class PasswordModel extends BaseReactModel<{}> {
@@ -14,6 +15,11 @@ export class PasswordModel extends BaseReactModel<{}> {
 
   getInitState() {
     return {};
+  }
+
+  encryptByMD5(password: string): string {
+    const res = crypto.createHash("md5").update(password).digest("hex");
+    return res;
   }
 
   async generatePublicKey() {

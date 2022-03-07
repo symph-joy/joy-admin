@@ -2,8 +2,8 @@ import { Component, IComponentLifecycle } from "@symph/core";
 import jwt from "jsonwebtoken";
 import { Value } from "@symph/config";
 import { ObjectID } from "typeorm";
-import { SendCodeReturn } from "../../client/utils/common.interface";
-import { ExpiredUser, LoginSuccess, SuccessCode, WrongCode, WrongToken } from "../../client/utils/constUtils";
+import { SendCodeReturn } from "../../utils/common.interface";
+import { ExpiredUser, LoginSuccess, SuccessCode, WrongCode, WrongToken } from "../../utils/constUtils";
 
 @Component()
 export class AuthService implements IComponentLifecycle {

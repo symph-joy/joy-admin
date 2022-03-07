@@ -1,7 +1,7 @@
 import { ReactModel, BaseReactModel } from "@symph/react";
 import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
-import { Captcha } from "../utils/common.interface";
+import { Captcha } from "../../utils/common.interface";
 
 @ReactModel()
 export class CaptchaModel extends BaseReactModel<{}> {
