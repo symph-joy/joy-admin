@@ -1,6 +1,6 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import svgCaptcha from "svg-captcha";
-import { Captcha, CaptchaImg, SendCodeReturn } from "../../utils/common.interface";
+import { Captcha, CaptchaImg, CaptchaInterface, SendCodeReturn } from "../../utils/common.interface";
 import { v1 as uuidv1 } from "uuid";
 import { DBService } from "./db.service";
 import { CaptchaDB } from "../../utils/entity/CaptchaDB";
@@ -39,10 +39,18 @@ export class CaptchaService implements IComponentLifecycle {
     };
   }
 
+  public async getCaptcha(captchaId: string): Promise<CaptchaInterface> {
+    return await this.connection.manager.findOne(CaptchaDB, { captchaId });
+  }
+
+  public deleteCaptcha(captchaDB: CaptchaInterface) {
+    this.connection.manager.delete(CaptchaDB, captchaDB);
+  }
+
   public async checkCaptcha(values: Captcha): Promise<SendCodeReturn> {
     const captchaInput = values[captchaField];
     const captchaId = values[captchaIdField];
-    const captchaDB = await this.connection.manager.findOne(CaptchaDB, { captchaId });
+    const captchaDB = await this.getCaptcha(captchaId);
     if (!captchaDB) {
       return {
         message: NotExistCaptcha,
@@ -51,7 +59,7 @@ export class CaptchaService implements IComponentLifecycle {
     }
     const date = new Date().getTime();
     if (captchaDB.expiration < date) {
-      this.connection.manager.delete(CaptchaDB, captchaDB);
+      this.deleteCaptcha(captchaDB);
       return {
         code: WrongCode,
         message: NotExistCaptcha,
@@ -63,7 +71,7 @@ export class CaptchaService implements IComponentLifecycle {
         code: WrongCode,
       };
     }
-    this.connection.manager.delete(CaptchaDB, captchaDB);
+    this.deleteCaptcha(captchaDB);
     return {
       message: CaptchaRight,
       code: SuccessCode,

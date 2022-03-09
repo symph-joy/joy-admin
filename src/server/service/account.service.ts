@@ -14,7 +14,7 @@ export class AccountService implements IComponentLifecycle {
   initialize() {}
 
   // 添加账户
-  public async addCount(email: string, username: string, userId: ObjectID): Promise<SendCodeReturn> {
+  public async addAccount(email: string, username: string, userId: ObjectID): Promise<SendCodeReturn> {
     const account = new Account();
     account.email = email;
     account.username = username;
@@ -34,5 +34,17 @@ export class AccountService implements IComponentLifecycle {
       message: AccountAddSuccess,
       data: res,
     };
+  }
+
+  public async getAccountByOptions(options: object): Promise<AccountInterface> {
+    return await this.connection.manager.findOne(Account, options);
+  }
+
+  public upDateAccount(_id: ObjectID, options: object): void {
+    return this.connection.manager.update(Account, _id, options);
+  }
+
+  public upDateAccountByUserId(userId: ObjectID, options: object): void {
+    return this.connection.manager.update(Account, { userId }, options);
   }
 }

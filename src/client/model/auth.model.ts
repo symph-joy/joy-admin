@@ -1,12 +1,12 @@
 import { ReactModel, BaseReactModel } from "@symph/react";
 import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
-import { SuccessCode, WrongToken } from "../../utils/constUtils";
-import { UserModel } from "./user.model";
+import { SuccessCode } from "../../utils/constUtils";
 import { message } from "antd";
+
 @ReactModel()
 export class AuthModel extends BaseReactModel<{}> {
-  constructor(@Inject("joyFetchService") private joyFetchService: ReactFetchService, private userModel: UserModel) {
+  constructor(@Inject("joyFetchService") private joyFetchService: ReactFetchService) {
     super();
   }
 
@@ -14,21 +14,12 @@ export class AuthModel extends BaseReactModel<{}> {
     return {};
   }
 
-  async checkToken(): Promise<void> {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const res = await this.userModel.getUser(token);
-      console.log("res:", res);
-
-      if (res.code !== SuccessCode) {
-        message.error(res.message);
-        localStorage.removeItem("token");
-        setTimeout(() => {
-          //   this.props.navigate("/login");
-        }, 1000);
-      }
-    } else {
-      message.error(WrongToken);
+  async checkToken() {
+    const resp = await this.joyFetchService.fetchApi("/checkToken");
+    const respJson = await resp.json();
+    const res = await respJson.data;
+    if (res.code !== SuccessCode) {
+      message.error(res.message);
       setTimeout(() => {
         // this.props.navigate("/login");
       }, 1000);

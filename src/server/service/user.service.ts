@@ -2,12 +2,14 @@ import { Component, IComponentLifecycle } from "@symph/core";
 import { DBService } from "./db.service";
 import { Payload, SendCodeReturn, UserInterface } from "../../utils/common.interface";
 import {
-  ExpiredUser,
+  GetSuccess,
   LoginSuccess,
   NotExistUser,
   RegisterFail,
   RegisterSuccess,
   SuccessCode,
+  UpdateFail,
+  UpdateSuccess,
   UserDeleteFail,
   UserDeleteSuccess,
   WrongCode,
@@ -61,7 +63,7 @@ export class UserService implements IComponentLifecycle {
     const password = values[passwordField];
     const resAll = await Promise.all([
       this.passwordService.addPassword(password, userRes._id),
-      this.accountService.addCount(email, username, userRes._id),
+      this.accountService.addAccount(email, username, userRes._id),
     ]);
     if (resAll[0].code === WrongCode) {
       this.deleteOnlyUser(userRes._id);
@@ -93,36 +95,56 @@ export class UserService implements IComponentLifecycle {
     };
   }
 
-  public async isTokenExpired(payload: SendCodeReturn) {
+  public async updateUsername(userId: string, username: string) {
+    const _id = new ObjectId(userId) as unknown as ObjectID;
+    this.upDateUser(_id, { username });
+    try {
+      const res = await Promise.all([this.upDateUser(_id, { username }), this.accountService.upDateAccountByUserId(_id, { username })]);
+      if (res[0].raw.matchedCount === 1) {
+        return {
+          message: UpdateSuccess,
+          code: SuccessCode,
+        };
+      } else {
+        return {
+          message: UpdateFail,
+          code: WrongCode,
+        };
+      }
+    } catch (e) {
+      return {
+        message: UpdateFail,
+        code: WrongCode,
+      };
+    }
+  }
+
+  public async upDateUser(_id: ObjectID, options: object) {
+    return this.connection.manager.update(User, _id, options);
+  }
+
+  public async getUserByOptions(options: object): Promise<UserInterface> {
+    return await this.connection.manager.findOne(User, options);
+  }
+
+  public async getUserByToken(payload: SendCodeReturn) {
     if (payload.code === WrongCode) {
       return payload;
     } else {
-      const date = Math.floor(Date.now() / 1000);
-      let data = payload.data as Payload;
-      if (data.exp > date) {
-        const user = await this.getUser(data.userId);
-        if (user) {
-          return {
-            message: LoginSuccess,
-            code: SuccessCode,
-            data: user,
-          };
-        } else {
-          return {
-            message: NotExistUser,
-            code: WrongCode,
-          };
-        }
+      const data = payload.data as Payload;
+      const user = await this.getUserByOptions({ _id: new ObjectId(data.userId) });
+      if (user) {
+        return {
+          message: GetSuccess,
+          code: SuccessCode,
+          data: user,
+        };
       } else {
         return {
-          message: ExpiredUser,
+          message: NotExistUser,
           code: WrongCode,
         };
       }
     }
-  }
-
-  public async getUser(userId: string): Promise<UserInterface> {
-    return await this.connection.manager.findOne(User, { _id: new ObjectId(userId) });
   }
 }

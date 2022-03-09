@@ -1,6 +1,8 @@
 import React, { ReactNode } from "react";
 import { BaseReactController, ReactController } from "@symph/react";
 import { Inject } from "@symph/core";
+import { Button } from "antd";
+import { Link } from "@symph/react/router-dom";
 import { AuthModel } from "../../model/auth.model";
 
 @ReactController()
@@ -8,10 +10,16 @@ export default class IndexController extends BaseReactController {
   @Inject()
   authModel: AuthModel;
 
-  async componentDidMount(): Promise<void> {
-    await this.authModel.checkToken();
+  componentDidMount(): void {
+    this.authModel.checkToken();
   }
   renderView(): ReactNode {
-    return <>个人中心</>;
+    return (
+      <>
+        <Button>
+          <Link to="/menu/userCenter">个人中心</Link>
+        </Button>
+      </>
+    );
   }
 }

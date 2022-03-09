@@ -39,7 +39,6 @@ export default class LoginController extends BaseReactController {
     captchaImg: "",
     captchaId: "",
     wrongTime: 0,
-    hasEncrypt: false,
   };
 
   formRef: RefObject<FormInstance> = React.createRef();
@@ -52,24 +51,14 @@ export default class LoginController extends BaseReactController {
         captchaId,
       };
     }
-    const { hasEncrypt } = this.state;
-    const res = await this.loginModel.login(values, hasEncrypt);
+    const res = await this.loginModel.login(values);
     if (res.code === SuccessCode) {
       message.success(res.message);
-      localStorage.setItem("token", res.data as string);
-      const rememberPassword = this.formRef.current.getFieldValue("rememberPassword");
-      if (rememberPassword) {
-        localStorage.setItem(emailField, values[emailField]);
-        localStorage.setItem(passwordField, values[passwordField]);
-      } else {
-        localStorage.removeItem(emailField);
-        localStorage.removeItem(passwordField);
-      }
       setTimeout(() => {
         this.props.navigate("/index");
       }, 1000);
     } else {
-      this.handleBlur();
+      this.getWrongTime();
       message.error(res.message);
     }
   };
@@ -82,7 +71,7 @@ export default class LoginController extends BaseReactController {
     });
   };
 
-  handleBlur = async () => {
+  getWrongTime = async () => {
     const email = this.formRef.current.getFieldValue(emailField);
     const wrongTime = await this.loginModel.getWrongTime(email);
     if (wrongTime) {
@@ -95,16 +84,9 @@ export default class LoginController extends BaseReactController {
     }
   };
 
-  componentDidMount(): void {
-    // const email = localStorage.getItem(emailField);
-    // const password = localStorage.getItem(passwordField);
-    // if (email && password) {
-    //   this.formRef.current.setFieldsValue({ email, password, rememberPassword: true });
-    //   this.setState({
-    //     hasEncrypt: true,
-    //   });
-    // }
-  }
+  handleBlur = async () => {
+    this.getWrongTime();
+  };
 
   renderView(): ReactNode {
     const { captchaImg, wrongTime } = this.state;

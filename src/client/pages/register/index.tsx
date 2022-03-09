@@ -28,10 +28,9 @@ import {
   CaptchaText,
   okText,
   cancelText,
-  NotExistPublicKey,
 } from "../../../utils/constUtils";
 import { RefObject } from "react";
-import { passwordField, emailField, emailCodeField, captchaField, publicKeyField } from "../../../utils/apiField";
+import { passwordField, emailField, emailCodeField, captchaField } from "../../../utils/apiField";
 import { PasswordModel } from "../../model/password.model";
 
 @ReactController()
@@ -68,9 +67,6 @@ export default class RegisterController extends BaseReactController {
         this.props.navigate("/login");
       }, 1000);
     } else {
-      if (res.message === NotExistPublicKey) {
-        localStorage.removeItem(publicKeyField);
-      }
       message.error(res.message);
     }
     this.setState({
@@ -145,8 +141,6 @@ export default class RegisterController extends BaseReactController {
       captchaId,
     });
   };
-
-  handleBlur = () => {};
 
   renderView(): ReactNode {
     const { IsExistEmail, second, registering, sending, showModal, captchaImg } = this.state;

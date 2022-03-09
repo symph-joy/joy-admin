@@ -10,19 +10,24 @@ import {
   PasswordWrong,
   LoginSuccess,
 } from "../../utils/constUtils";
-import { passwordField, captchaField, captchaIdField, emailField, publicKeyField } from "../../utils/apiField";
+import { passwordField, captchaField, captchaIdField, emailField, rememberPasswordField } from "../../utils/apiField";
 import { DBService } from "./db.service";
-import { CaptchaDB } from "../../utils/entity/CaptchaDB";
 import bcrypt from "bcryptjs";
-import { SendCodeReturn } from "../../utils/common.interface";
-import { PasswordDB } from "../../utils/entity/PasswordDB";
+import { SendCodeReturn, tokenCookie } from "../../utils/common.interface";
 import { AuthService } from "./auth.service";
-import { Account } from "../../utils/entity/AccountDB";
+import { CaptchaService } from "./captcha.service";
+import { AccountService } from "./account.service";
 import { PasswordService } from "./password.service";
 
 @Component()
 export class LoginService implements IComponentLifecycle {
-  constructor(private authService: AuthService, private passwordService: PasswordService, private dbService: DBService) {}
+  constructor(
+    private authService: AuthService,
+    private dbService: DBService,
+    private captchaService: CaptchaService,
+    private accountService: AccountService,
+    private passwordService: PasswordService
+  ) {}
 
   public connection = this.dbService.connection;
 
@@ -34,7 +39,7 @@ export class LoginService implements IComponentLifecycle {
     const captchaInput = values[captchaField];
     const captchaId = values[captchaIdField];
     if (captchaInput) {
-      const captchaDB = await this.connection.manager.findOne(CaptchaDB, { captchaId });
+      const captchaDB = await this.captchaService.getCaptcha(captchaId);
       if (!captchaDB) {
         return {
           message: NotExistCaptcha,
@@ -50,45 +55,36 @@ export class LoginService implements IComponentLifecycle {
     }
     // 账户是否存在
     const email = values[emailField];
-    const account = await this.connection.manager.findOne(Account, { where: { $or: [{ email }, { username: email }] } });
+    const account = await this.accountService.getAccountByOptions({ where: { $or: [{ email }, { username: email }] } });
     if (!account) {
       return {
         message: NotExistUsernameOrEmail,
         code: NotExistCode,
       };
     } else {
-      const userPassword = await this.connection.manager.findOne(PasswordDB, { userId: account.userId });
+      const userPassword = await this.passwordService.getPassword(account.userId);
       const password = values[passwordField];
-      const publicKey = values[publicKeyField];
-      const res = await this.passwordService.decrypt(password, publicKey);
-      // 密钥是否存在
-      if (res.code === WrongCode) {
-        return res;
+      // 密码是否正确
+      if (!bcrypt.compareSync(password, userPassword.password)) {
+        this.accountService.upDateAccount(account._id, { wrongTime: account.wrongTime + 1 });
+        return {
+          message: PasswordWrong,
+          code: WrongCode,
+        };
       } else {
-        // 密码是否正确
-        if (!bcrypt.compareSync(res.data, userPassword.password)) {
-          this.connection.manager.update(Account, account._id, { wrongTime: account.wrongTime + 1 });
-          return {
-            message: PasswordWrong,
-            code: WrongCode,
-          };
-        } else {
-          const token = this.authService.generateToken(account.userId);
-          if (account.wrongTime > 0) {
-            this.connection.manager.update(Account, account._id, { wrongTime: 0 });
-          }
-          return {
-            data: token,
-            message: LoginSuccess,
-            code: SuccessCode,
-          };
+        const token = this.authService.generateToken(account.userId);
+        if (account.wrongTime > 0) {
+          this.accountService.upDateAccount(account._id, { wrongTime: 0 });
         }
+        return {
+          data: {
+            token,
+            rememberPassword: values[rememberPasswordField] ? true : false,
+          },
+          message: LoginSuccess,
+          code: SuccessCode,
+        };
       }
     }
-  }
-
-  public async getWrongTime(email: string): Promise<number> {
-    const res = await this.connection.manager.findOne(Account, { email });
-    return res?.wrongTime;
   }
 }

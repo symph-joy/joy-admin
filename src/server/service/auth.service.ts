@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import { Value } from "@symph/config";
 import { ObjectID } from "typeorm";
 import { SendCodeReturn } from "../../utils/common.interface";
-import { ExpiredUser, LoginSuccess, SuccessCode, WrongCode, WrongToken } from "../../utils/constUtils";
+import { CheckSuccess, ExpiredUser, LoginSuccess, SuccessCode, WrongCode, WrongToken } from "../../utils/constUtils";
 
 @Component()
 export class AuthService implements IComponentLifecycle {
@@ -17,7 +17,7 @@ export class AuthService implements IComponentLifecycle {
     // Token 数据
     const payload = {
       userId,
-      exp: created + 60 * 30,
+      exp: created + 60 * 60 * 24 * 7, // 一周
       iat: created,
     };
     // 密钥
@@ -43,7 +43,7 @@ export class AuthService implements IComponentLifecycle {
         }
       } else {
         return {
-          message: LoginSuccess,
+          message: CheckSuccess,
           code: SuccessCode,
           data: decoded,
         };

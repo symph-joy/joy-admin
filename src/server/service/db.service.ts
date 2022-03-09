@@ -6,7 +6,6 @@ import { EmailCodeDB } from "../../utils/entity/EmailCodeDB";
 import { CaptchaDB } from "../../utils/entity/CaptchaDB";
 import { PasswordDB } from "../../utils/entity/PasswordDB";
 import { Account } from "../../utils/entity/AccountDB";
-import { KeyDB } from "../../utils/entity/KeyDB";
 
 @Component()
 export class DBService implements IComponentLifecycle {
@@ -26,7 +25,7 @@ export class DBService implements IComponentLifecycle {
   async initialize() {
     await createConnection({
       ...this.dbOptions,
-      entities: [User, EmailCodeDB, CaptchaDB, PasswordDB, Account, KeyDB],
+      entities: [User, EmailCodeDB, CaptchaDB, PasswordDB, Account],
     }).then(async (connection) => {
       this.connection = connection;
     });

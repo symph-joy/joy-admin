@@ -19,10 +19,22 @@ export interface AccountInterface {
   wrongTime: number;
 }
 
+export interface CaptchaInterface {
+  _id: ObjectID;
+  captcha: string;
+  captchaId: string;
+  expiration: number;
+}
+
 export interface SendCodeReturn {
-  data?: string | UserInterface | PasswordInterface | AccountInterface | Payload;
+  data?: string | UserInterface | PasswordInterface | AccountInterface | Payload | tokenCookie;
   message: string;
   code: number;
+}
+
+export interface tokenCookie {
+  token: string;
+  rememberPassword: boolean;
 }
 
 export interface CaptchaImg {

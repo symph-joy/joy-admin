@@ -1,7 +1,6 @@
 import { Controller, Get, Query, Post, Body } from "@symph/server";
 import { RegisterService } from "../service/register.service";
 import { SendCodeReturn } from "../../utils/common.interface";
-import { UserService } from "../service/user.service";
 import { EmailService } from "../service/email.service";
 
 @Controller()
