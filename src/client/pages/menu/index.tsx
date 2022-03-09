@@ -7,19 +7,7 @@ import { AuthModel } from "../../model/auth.model";
 
 @ReactController()
 export default class IndexController extends BaseReactController {
-  @Inject()
-  authModel: AuthModel;
-
-  componentDidMount(): void {
-    this.authModel.checkToken();
-  }
   renderView(): ReactNode {
-    return (
-      <>
-        <Button>
-          <Link to="/menu/userCenter">个人中心</Link>
-        </Button>
-      </>
-    );
+    return <>首页</>;
   }
 }

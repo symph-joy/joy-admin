@@ -16,7 +16,7 @@ export class LoginModel extends BaseReactModel<{}> {
   }
 
   async login(values: LoginUser): Promise<SendCodeReturn> {
-    values.password = this.passwordModel.encryptByMD5(values[passwordField]);
+    values[passwordField] = this.passwordModel.encryptByMD5(values[passwordField]);
     const resp = await this.joyFetchService.fetchApi("/login", { method: "POST", body: JSON.stringify(values) });
     const respJson = await resp.json();
     return respJson.data;

@@ -3,7 +3,6 @@ import { DBService } from "./db.service";
 import { Payload, SendCodeReturn, UserInterface } from "../../utils/common.interface";
 import {
   GetSuccess,
-  LoginSuccess,
   NotExistUser,
   RegisterFail,
   RegisterSuccess,
@@ -12,6 +11,7 @@ import {
   UpdateSuccess,
   UserDeleteFail,
   UserDeleteSuccess,
+  UsernameExist,
   WrongCode,
 } from "../../utils/constUtils";
 import { User } from "../../utils/entity/UserDB";
@@ -95,31 +95,38 @@ export class UserService implements IComponentLifecycle {
     };
   }
 
-  public async updateUsername(userId: string, username: string) {
+  public async updateUsername(userId: string, username: string): Promise<SendCodeReturn> {
     const _id = new ObjectId(userId) as unknown as ObjectID;
-    this.upDateUser(_id, { username });
-    try {
-      const res = await Promise.all([this.upDateUser(_id, { username }), this.accountService.upDateAccountByUserId(_id, { username })]);
-      if (res[0].raw.matchedCount === 1) {
-        return {
-          message: UpdateSuccess,
-          code: SuccessCode,
-        };
-      } else {
+    const hasUser = await this.getUserByOptions({ username });
+    if (!hasUser) {
+      try {
+        const res = await Promise.all([this.upDateUser(_id, { username }), this.accountService.upDateAccountByUserId(_id, { username })]);
+        if (res[0].raw.matchedCount === 1) {
+          return {
+            message: UpdateSuccess,
+            code: SuccessCode,
+          };
+        } else {
+          return {
+            message: UpdateFail,
+            code: WrongCode,
+          };
+        }
+      } catch (e) {
         return {
           message: UpdateFail,
           code: WrongCode,
         };
       }
-    } catch (e) {
+    } else {
       return {
-        message: UpdateFail,
+        message: UsernameExist,
         code: WrongCode,
       };
     }
   }
 
-  public async upDateUser(_id: ObjectID, options: object) {
+  public upDateUser(_id: ObjectID, options: object) {
     return this.connection.manager.update(User, _id, options);
   }
 
@@ -127,7 +134,7 @@ export class UserService implements IComponentLifecycle {
     return await this.connection.manager.findOne(User, options);
   }
 
-  public async getUserByToken(payload: SendCodeReturn) {
+  public async getUserByToken(payload: SendCodeReturn): Promise<SendCodeReturn> {
     if (payload.code === WrongCode) {
       return payload;
     } else {

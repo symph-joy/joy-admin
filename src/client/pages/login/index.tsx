@@ -55,7 +55,7 @@ export default class LoginController extends BaseReactController {
     if (res.code === SuccessCode) {
       message.success(res.message);
       setTimeout(() => {
-        this.props.navigate("/index");
+        this.props.navigate("/menu");
       }, 1000);
     } else {
       this.getWrongTime();

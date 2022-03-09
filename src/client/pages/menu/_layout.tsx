@@ -2,23 +2,36 @@ import React, { ReactNode } from "react";
 import { BaseReactController, ReactController } from "@symph/react";
 import { Outlet } from "@symph/react/router-dom";
 import { Layout } from "antd";
-const { Header, Sider, Content } = Layout;
 import styles from "./layout.less";
+import HeaderRight from "../../components/HeaderRight";
+import { AuthModel } from "../../model/auth.model";
+import { Inject } from "@symph/core";
+
+const { Header, Sider, Content } = Layout;
 
 @ReactController()
 export default class IndexLayout extends BaseReactController {
+  @Inject()
+  authModel: AuthModel;
+
+  async componentDidMount(): Promise<void> {
+    await this.authModel.checkToken();
+  }
+
   renderView(): ReactNode {
     return (
       <Layout className={styles.layout}>
         <Header>
           <div>Symph Joy Admin</div>
           <div>Menu2</div>
-          <div>右边</div>
+          <HeaderRight />
         </Header>
         <Layout>
-          <Sider>Menu1</Sider>
+          <Sider theme="light">Menu1</Sider>
           <Content>
-            <Outlet />
+            <div className={styles.content}>
+              <Outlet />
+            </div>
           </Content>
         </Layout>
       </Layout>

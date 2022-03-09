@@ -2,10 +2,12 @@ import { ReactModel, BaseReactModel } from "@symph/react";
 import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
 import crypto from "crypto";
+import { confirmPasswordField, newPasswordField, oldPasswordField } from "../../utils/apiField";
+import { UserModel } from "./user.model";
 
 @ReactModel()
 export class PasswordModel extends BaseReactModel<{}> {
-  constructor(@Inject("joyFetchService") private joyFetchService: ReactFetchService) {
+  constructor(@Inject("joyFetchService") private joyFetchService: ReactFetchService, private userModel: UserModel) {
     super();
   }
 
@@ -16,5 +18,15 @@ export class PasswordModel extends BaseReactModel<{}> {
   encryptByMD5(password: string): string {
     const res = crypto.createHash("md5").update(password).digest("hex");
     return res;
+  }
+
+  async changePassword(values) {
+    values[newPasswordField] = this.encryptByMD5(values[newPasswordField]);
+    values[oldPasswordField] = this.encryptByMD5(values[oldPasswordField]);
+    values.userId = this.userModel.state.user._id;
+    values[confirmPasswordField] = null;
+    const resp = await this.joyFetchService.fetchApi("/changePassword", { method: "POST", body: JSON.stringify(values) });
+    const respJson = await resp.json();
+    return respJson.data;
   }
 }

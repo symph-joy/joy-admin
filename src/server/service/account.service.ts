@@ -40,11 +40,11 @@ export class AccountService implements IComponentLifecycle {
     return await this.connection.manager.findOne(Account, options);
   }
 
-  public upDateAccount(_id: ObjectID, options: object): void {
+  public upDateAccount(_id: ObjectID, options: object) {
     return this.connection.manager.update(Account, _id, options);
   }
 
-  public upDateAccountByUserId(userId: ObjectID, options: object): void {
+  public upDateAccountByUserId(userId: ObjectID, options: object) {
     return this.connection.manager.update(Account, { userId }, options);
   }
 }

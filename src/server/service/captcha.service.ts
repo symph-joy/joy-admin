@@ -43,7 +43,7 @@ export class CaptchaService implements IComponentLifecycle {
     return await this.connection.manager.findOne(CaptchaDB, { captchaId });
   }
 
-  public deleteCaptcha(captchaDB: CaptchaInterface) {
+  public deleteCaptcha(captchaDB: CaptchaInterface): void {
     this.connection.manager.delete(CaptchaDB, captchaDB);
   }
 

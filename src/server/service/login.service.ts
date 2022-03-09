@@ -12,8 +12,7 @@ import {
 } from "../../utils/constUtils";
 import { passwordField, captchaField, captchaIdField, emailField, rememberPasswordField } from "../../utils/apiField";
 import { DBService } from "./db.service";
-import bcrypt from "bcryptjs";
-import { SendCodeReturn, tokenCookie } from "../../utils/common.interface";
+import { SendCodeReturn } from "../../utils/common.interface";
 import { AuthService } from "./auth.service";
 import { CaptchaService } from "./captcha.service";
 import { AccountService } from "./account.service";
@@ -62,10 +61,8 @@ export class LoginService implements IComponentLifecycle {
         code: NotExistCode,
       };
     } else {
-      const userPassword = await this.passwordService.getPassword(account.userId);
-      const password = values[passwordField];
-      // 密码是否正确
-      if (!bcrypt.compareSync(password, userPassword.password)) {
+      const resPassword = await this.passwordService.checkPassword(account.userId, values[passwordField]);
+      if (resPassword.code === WrongCode) {
         this.accountService.upDateAccount(account._id, { wrongTime: account.wrongTime + 1 });
         return {
           message: PasswordWrong,

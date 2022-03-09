@@ -28,7 +28,7 @@ export class RegisterModel extends BaseReactModel<RegisterModelState> {
   }
 
   async register(values: RegisterUser): Promise<SendCodeReturn> {
-    values.password = this.passwordModel.encryptByMD5(values[passwordField]);
+    values[passwordField] = this.passwordModel.encryptByMD5(values[passwordField]);
     const resp = await this.joyFetchService.fetchApi("/register", { method: "POST", body: JSON.stringify(values) });
     const respJson = await resp.json();
     return respJson.data;

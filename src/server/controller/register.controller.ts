@@ -22,7 +22,7 @@ export class RegisterController {
   }
 
   @Post("/register")
-  async register(@Body() values: string) {
+  async register(@Body() values: string): Promise<{ data: SendCodeReturn }> {
     return {
       data: await this.registerService.register(JSON.parse(values)),
     };
