@@ -5,7 +5,7 @@ import fastifyCookie from "fastify-cookie";
 import { FastifyAdapter } from "@symph/server/dist/platform/fastify";
 import { LoginService } from "../service/login.service";
 import { SuccessCode } from "../../utils/constUtils";
-import { SendCodeReturn, tokenCookie } from "../../utils/common.interface";
+import { ControllerReturn, tokenCookie } from "../../utils/common.interface";
 import { rememberPasswordField } from "../../utils/apiField";
 
 @Controller()
@@ -17,19 +17,16 @@ export class DocsController implements IComponentLifecycle {
   }
 
   @Post("/login")
-  async login(@Body() values: string, @Response({ passthrough: true }) res: FastifyReply): Promise<{ data: SendCodeReturn }> {
+  async login(@Body() values: string, @Response({ passthrough: true }) res: FastifyReply): Promise<ControllerReturn> {
     const data = await this.loginService.login(JSON.parse(values));
     if (data.code === SuccessCode) {
       const temp = data.data as tokenCookie;
       if (temp[rememberPasswordField]) {
         const date = new Date().getTime();
-        // const expiresTime = new Date(date + 60 * 1000 * 60 * 24 * 7);
-        const expiresTime = new Date(date + 60 * 1000);
-        res.setCookie("token", temp.token, { expires: expiresTime });
-        // res.setCookie("token", temp.token, { expires: expiresTime, maxAge: 60 * 60 * 7 });
+        const expiresTime = new Date(date + 60 * 1000 * 60 * 24 * 7);
+        res.setCookie("token", temp.token, { path: "/", expires: expiresTime });
       } else {
         res.setCookie("token", temp.token, { path: "/" });
-        // res.setCookie("token", temp.token);
       }
     }
     return {

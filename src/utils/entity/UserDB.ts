@@ -4,9 +4,9 @@ export class User extends BaseEntity {
   @ObjectIdColumn()
   _id: ObjectID;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 }

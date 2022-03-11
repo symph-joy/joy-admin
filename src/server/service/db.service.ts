@@ -1,6 +1,6 @@
 import { Component, IComponentLifecycle, RegisterTap } from "@symph/core";
 import { Value } from "@symph/config";
-import { createConnection } from "typeorm";
+import { createConnection, getConnectionManager } from "typeorm";
 import { User } from "../../utils/entity/UserDB";
 import { EmailCodeDB } from "../../utils/entity/EmailCodeDB";
 import { CaptchaDB } from "../../utils/entity/CaptchaDB";
@@ -9,14 +9,6 @@ import { Account } from "../../utils/entity/AccountDB";
 
 @Component()
 export class DBService implements IComponentLifecycle {
-  // @RegisterTap({ hookId: "onBeforeShutdownHook" })
-  // async onBeforeShutdownHook() {
-  //   this.connection = await createConnection({
-  //     ...this.dbOptions,
-  //     entities: [User, EmailCodeDB, CaptchaDB, PasswordDB, Account, KeyDB],
-  //   }).then(async (connection) => {
-  // }
-
   @Value({ configKey: "dbOptions" })
   public dbOptions;
 
@@ -29,5 +21,10 @@ export class DBService implements IComponentLifecycle {
     }).then(async (connection) => {
       this.connection = connection;
     });
+  }
+
+  @RegisterTap({ hookId: "onBeforeShutdownHook" })
+  async onBeforeShutdownHook() {
+    this.connection.close();
   }
 }

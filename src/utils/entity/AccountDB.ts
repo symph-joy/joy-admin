@@ -4,13 +4,13 @@ export class Account extends BaseEntity {
   @ObjectIdColumn()
   _id: ObjectID;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
-  @Column()
+  @Column({ unique: true })
   username: string;
 
-  @Column()
+  @Column({ unique: true })
   userId: ObjectID;
 
   @Column()

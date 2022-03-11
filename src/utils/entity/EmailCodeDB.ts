@@ -5,7 +5,7 @@ export class EmailCodeDB {
   @ObjectIdColumn()
   _id: ObjectID;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()

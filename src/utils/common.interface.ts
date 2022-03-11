@@ -52,3 +52,7 @@ export interface Payload {
   exp: number;
   iat: number;
 }
+
+export interface ControllerReturn {
+  data: SendCodeReturn;
+}

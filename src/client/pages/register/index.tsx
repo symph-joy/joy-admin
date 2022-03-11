@@ -198,12 +198,12 @@ export default class RegisterController extends BaseReactController {
               }),
             ]}
           >
-            <Input type="email" />
+            <Input type="email" autoComplete="off" />
           </Form.Item>
           {!IsExistEmail && (
             <>
               <Form.Item label={EmailCodeText} name={emailCodeField} rules={[{ required: true, message: noEmailCode }]}>
-                <Input />
+                <Input autoComplete="off" />
               </Form.Item>
 
               {second === 60 && !sending ? (
@@ -226,7 +226,7 @@ export default class RegisterController extends BaseReactController {
           </Modal>
 
           <Form.Item label={PasswordText} name={passwordField} rules={[{ required: true, message: noPassword }]}>
-            <Input.Password />
+            <Input.Password autoComplete="new-password" />
           </Form.Item>
 
           <Form.Item wrapperCol={{ offset: 8, span: 16 }}>

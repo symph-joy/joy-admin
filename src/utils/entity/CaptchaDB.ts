@@ -8,7 +8,7 @@ export class CaptchaDB {
   @Column()
   captcha: string;
 
-  @Column()
+  @Column({ unique: true })
   captchaId: string;
 
   @Column()
