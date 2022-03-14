@@ -1,17 +1,14 @@
 import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column, Index } from "typeorm";
 @Entity()
-export class UserDB extends BaseEntity {
+export class RoleDB extends BaseEntity {
   @ObjectIdColumn()
   _id: ObjectID;
 
   @Column()
   @Index({ unique: true })
-  username: string;
+  roleId: number;
 
   @Column()
   @Index({ unique: true })
-  email: string;
-
-  @Column()
-  roleId: number;
+  role: string;
 }

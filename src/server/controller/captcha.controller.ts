@@ -14,7 +14,7 @@ export class CaptchaController {
   }
 
   @Post("/checkCaptcha")
-  async login(@Body() values): Promise<ControllerReturn> {
+  async login(@Body() values): Promise<ControllerReturn<null>> {
     return {
       data: await this.captchaService.checkCaptcha(JSON.parse(values)),
     };

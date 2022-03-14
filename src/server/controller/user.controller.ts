@@ -3,7 +3,7 @@ import { AuthService } from "../service/auth.service";
 import { UserService } from "../service/user.service";
 import { FastifyRequest } from "fastify";
 import { SuccessCode } from "../../utils/constUtils";
-import { ControllerReturn } from "../../utils/common.interface";
+import { ControllerReturn, Payload, UserInterface } from "../../utils/common.interface";
 import { PasswordService } from "../service/password.service";
 
 @Controller()
@@ -11,16 +11,16 @@ export class UserController {
   constructor(private authService: AuthService, private userService: UserService, private passwordService: PasswordService) {}
 
   @Get("/getUserByToken")
-  async getUserByToken(@Request() req: FastifyRequest): Promise<ControllerReturn> {
+  async getUserByToken(@Request() req: FastifyRequest): Promise<ControllerReturn<UserInterface | Payload>> {
     const token = req.cookies.token;
-    const payload = this.authService.checkToken(token);
+    const res = this.authService.checkToken(token);
     return {
-      data: await this.userService.getUserByToken(payload),
+      data: await this.userService.getUserByToken(res),
     };
   }
 
   @Post("/updateUsername")
-  async updateUsername(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn> {
+  async updateUsername(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn<Payload>> {
     const token = req.cookies.token;
     const payload = this.authService.checkToken(token);
     if (payload.code === SuccessCode) {
@@ -37,10 +37,10 @@ export class UserController {
   }
 
   @Post("/changePassword")
-  async changePassword(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn> {
+  async changePassword(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn<Payload>> {
     const token = req.cookies.token;
-    const payload = this.authService.checkToken(token);
-    if (payload.code === SuccessCode) {
+    const res = this.authService.checkToken(token);
+    if (res.code === SuccessCode) {
       const { oldPassword, newPassword, userId } = JSON.parse(values);
       const res = await this.passwordService.changePassword(userId, oldPassword, newPassword);
       return {
@@ -48,7 +48,7 @@ export class UserController {
       };
     } else {
       return {
-        data: payload,
+        data: res,
       };
     }
   }

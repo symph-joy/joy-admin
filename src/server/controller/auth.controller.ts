@@ -8,7 +8,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Get("/checkToken")
-  async checkToken(@Request() req: FastifyRequest): Promise<ControllerReturn> {
+  async checkToken(@Request() req: FastifyRequest): Promise<ControllerReturn<null>> {
     const token = req.cookies.token;
     const { message, code } = this.authService.checkToken(token);
     return {

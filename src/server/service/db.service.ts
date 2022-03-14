@@ -1,11 +1,13 @@
 import { Component, IComponentLifecycle, RegisterTap } from "@symph/core";
 import { Value } from "@symph/config";
-import { createConnection, getConnectionManager } from "typeorm";
-import { User } from "../../utils/entity/UserDB";
+import { createConnection } from "typeorm";
+import { UserDB } from "../../utils/entity/UserDB";
 import { EmailCodeDB } from "../../utils/entity/EmailCodeDB";
 import { CaptchaDB } from "../../utils/entity/CaptchaDB";
 import { PasswordDB } from "../../utils/entity/PasswordDB";
-import { Account } from "../../utils/entity/AccountDB";
+import { AccountDB } from "../../utils/entity/AccountDB";
+import { TokenDB } from "../../utils/entity/TokenDB";
+import { RoleDB } from "../../utils/entity/RoleDB";
 
 @Component()
 export class DBService implements IComponentLifecycle {
@@ -17,7 +19,7 @@ export class DBService implements IComponentLifecycle {
   async initialize() {
     await createConnection({
       ...this.dbOptions,
-      entities: [User, EmailCodeDB, CaptchaDB, PasswordDB, Account],
+      entities: [UserDB, EmailCodeDB, CaptchaDB, PasswordDB, AccountDB, TokenDB, RoleDB],
     }).then(async (connection) => {
       this.connection = connection;
     });
@@ -25,6 +27,6 @@ export class DBService implements IComponentLifecycle {
 
   @RegisterTap({ hookId: "onBeforeShutdownHook" })
   async onBeforeShutdownHook() {
-    this.connection.close();
+    await this.connection.close();
   }
 }

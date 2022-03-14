@@ -1,8 +1,7 @@
 import { Component, IComponentLifecycle } from "@symph/core";
-import { SuccessCode, RegisterSuccess } from "../../utils/constUtils";
-import { SendCodeReturn } from "../../utils/common.interface";
+import { SuccessCode, RegisterSuccess, RegisterFail } from "../../utils/constUtils";
+import { ReturnInterface, RegisterUser } from "../../utils/common.interface";
 import { UserService } from "./user.service";
-import { RegisterUser } from "../../utils/register.interface";
 
 @Component()
 export class RegisterService implements IComponentLifecycle {
@@ -11,7 +10,7 @@ export class RegisterService implements IComponentLifecycle {
   initialize() {}
 
   // 注册
-  public async register(values: RegisterUser): Promise<SendCodeReturn> {
+  public async register(values: RegisterUser): Promise<ReturnInterface<null>> {
     const res = await this.userService.addUser(values);
     if (res.code === SuccessCode) {
       return {
@@ -19,7 +18,10 @@ export class RegisterService implements IComponentLifecycle {
         message: RegisterSuccess,
       };
     } else {
-      return res;
+      return {
+        ...res,
+        message: RegisterFail,
+      };
     }
   }
 }

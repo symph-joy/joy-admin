@@ -1,16 +1,19 @@
-import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column } from "typeorm";
+import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column, Index } from "typeorm";
 @Entity()
-export class Account extends BaseEntity {
+export class AccountDB extends BaseEntity {
   @ObjectIdColumn()
   _id: ObjectID;
 
-  @Column({ unique: true })
+  @Column()
+  @Index({ unique: true })
   email: string;
 
-  @Column({ unique: true })
+  @Column()
+  @Index({ unique: true })
   username: string;
 
-  @Column({ unique: true })
+  @Column()
+  @Index({ unique: true })
   userId: ObjectID;
 
   @Column()

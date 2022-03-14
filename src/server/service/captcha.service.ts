@@ -1,6 +1,6 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import svgCaptcha from "svg-captcha";
-import { Captcha, CaptchaImg, CaptchaInterface, SendCodeReturn } from "../../utils/common.interface";
+import { Captcha, CaptchaImg, CaptchaInterface, ReturnInterface } from "../../utils/common.interface";
 import { v1 as uuidv1 } from "uuid";
 import { DBService } from "./db.service";
 import { CaptchaDB } from "../../utils/entity/CaptchaDB";
@@ -25,18 +25,22 @@ export class CaptchaService implements IComponentLifecycle {
       ignoreChars: "0o1i", // 验证码字符中排除 0o1i
     });
     const captchaId = uuidv1();
+    await this.addCaptcha(captchaId, captcha.text);
+    return {
+      captchaImg: captcha.data,
+      captchaId,
+    };
+  }
+
+  public async addCaptcha(captchaId: string, captchaText: string) {
     const captchaDb = new CaptchaDB();
-    captchaDb.captcha = captcha.text.toLowerCase();
+    captchaDb.captcha = captchaText.toLowerCase();
     captchaDb.captchaId = captchaId;
     const date = new Date();
     const min = date.getMinutes();
     date.setMinutes(min + 5);
     captchaDb.expiration = date.getTime();
     await this.connection.manager.save(captchaDb);
-    return {
-      captchaImg: captcha.data,
-      captchaId,
-    };
   }
 
   public async getCaptcha(captchaId: string): Promise<CaptchaInterface> {
@@ -47,7 +51,7 @@ export class CaptchaService implements IComponentLifecycle {
     this.connection.manager.delete(CaptchaDB, captchaDB);
   }
 
-  public async checkCaptcha(values: Captcha): Promise<SendCodeReturn> {
+  public async checkCaptcha(values: Captcha): Promise<ReturnInterface<null>> {
     const captchaInput = values[captchaField];
     const captchaId = values[captchaIdField];
     const captchaDB = await this.getCaptcha(captchaId);

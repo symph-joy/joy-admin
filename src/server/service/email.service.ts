@@ -1,8 +1,7 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import { Value } from "@symph/config";
 import nodemailer from "nodemailer";
-import { EmailOption, MailOptions } from "../../utils/register.interface";
-import { SendCodeReturn } from "../../utils/common.interface";
+import { ReturnInterface, EmailOption, MailOptions } from "../../utils/common.interface";
 import {
   EmailCodeText,
   SendSuccess,
@@ -14,7 +13,7 @@ import {
   EmailCodeRight,
   ExpiredEmailCode,
 } from "../../utils/constUtils";
-import { User } from "../../utils/entity/UserDB";
+import { UserDB } from "../../utils/entity/UserDB";
 import { EmailCodeDB } from "../../utils/entity/EmailCodeDB";
 import svgCaptcha from "svg-captcha";
 import { DBService } from "./db.service";
@@ -34,12 +33,13 @@ export class EmailService implements IComponentLifecycle {
 
   // 邮箱是否存在
   public async checkIsExistEmail(email: string): Promise<boolean> {
-    const res = await this.connection.manager.findOne(User, { email });
+    // 两个服务互相调用，所以这里无法用user服务的方法
+    const res = await this.connection.manager.findOne(UserDB, { email });
     return res ? true : false;
   }
 
   // 向邮箱发送激活码
-  public async sendEmailCode(email: string): Promise<SendCodeReturn> {
+  public async sendEmailCode(email: string): Promise<ReturnInterface<null>> {
     const emailCode = this.getEmailCode();
     const transporter = nodemailer.createTransport(this.configEmailOptions);
     const mailOptions = {
@@ -56,7 +56,7 @@ export class EmailService implements IComponentLifecycle {
   }
 
   // 发送邮件
-  private sendEmail(transporter, mailOptions: MailOptions, email: string, emailCode: string): Promise<SendCodeReturn> {
+  private sendEmail(transporter, mailOptions: MailOptions, email: string, emailCode: string): Promise<ReturnInterface<null>> {
     return new Promise(async (resolve, reject) => {
       transporter.sendMail(mailOptions, async (err, info) => {
         if (err) {
@@ -87,21 +87,14 @@ export class EmailService implements IComponentLifecycle {
 
   // 在数据库中将邮箱和激活码进行绑定
   private async bindEmailAndEmailCode(email: string, emailCode: string): Promise<void> {
-    const emailCodeDB = new EmailCodeDB();
     // 先将数据库中关于该email的其它删除
-    await this.connection.manager.delete(EmailCodeDB, { email });
-    emailCodeDB.email = email;
-    emailCodeDB.emailCode = emailCode;
-    const date = new Date();
-    const min = date.getMinutes();
-    date.setMinutes(min + 5);
-    emailCodeDB.expiration = date.getTime();
-    await this.connection.manager.save(emailCodeDB);
+    await this.deleteEmailCode(email);
+    await this.addEmailCode(email, emailCode);
   }
 
   // 验证邮箱和激活码是否匹配
-  public async checkEmailCodeIsRight(email: string, emailCode: string): Promise<SendCodeReturn> {
-    const res = await this.connection.manager.findOne(EmailCodeDB, { email });
+  public async checkEmailCodeIsRight(email: string, emailCode: string): Promise<ReturnInterface<null>> {
+    const res = await this.getEmailCodeToDB(email);
     if (!res) {
       return {
         code: NotExistCode,
@@ -110,7 +103,7 @@ export class EmailService implements IComponentLifecycle {
     }
     const date = new Date().getTime();
     if (res.expiration < date) {
-      this.connection.manager.delete(EmailCodeDB, res);
+      this.deleteEmailCode(email);
       return {
         code: WrongCode,
         message: ExpiredEmailCode,
@@ -127,5 +120,24 @@ export class EmailService implements IComponentLifecycle {
         message: EmailCodeWrong,
       };
     }
+  }
+
+  public async addEmailCode(email: string, emailCode: string) {
+    const emailCodeDB = new EmailCodeDB();
+    emailCodeDB.email = email;
+    emailCodeDB.emailCode = emailCode;
+    const date = new Date();
+    const min = date.getMinutes();
+    date.setMinutes(min + 5);
+    emailCodeDB.expiration = date.getTime();
+    await this.connection.manager.save(emailCodeDB);
+  }
+
+  public async deleteEmailCode(email: string) {
+    await this.connection.manager.delete(EmailCodeDB, { email });
+  }
+
+  public async getEmailCodeToDB(email: string) {
+    return await this.connection.manager.findOne(EmailCodeDB, { email });
   }
 }

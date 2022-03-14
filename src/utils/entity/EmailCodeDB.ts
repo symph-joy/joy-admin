@@ -1,11 +1,11 @@
-import { Entity, Column, ObjectIdColumn, ObjectID } from "typeorm";
+import { Entity, Column, ObjectIdColumn, ObjectID, BaseEntity } from "typeorm";
 
 @Entity()
-export class EmailCodeDB {
+export class EmailCodeDB extends BaseEntity {
   @ObjectIdColumn()
   _id: ObjectID;
 
-  @Column({ unique: true })
+  @Column()
   email: string;
 
   @Column()

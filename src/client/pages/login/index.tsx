@@ -21,7 +21,7 @@ import {
 import { LoginModel } from "../../model/login.model";
 import { CaptchaModel } from "../../model/captcha.model";
 import { passwordField, captchaField, rememberPasswordField, emailField } from "../../../utils/apiField";
-import { LoginUser } from "../../../utils/login.interface";
+import { LoginUser } from "../../../utils/common.interface";
 import { PasswordModel } from "../../model/password.model";
 
 @ReactController()

@@ -1,5 +1,4 @@
 import { Component, IComponentLifecycle } from "@symph/core";
-import { LoginUser } from "../../utils/login.interface";
 import {
   WrongCode,
   SuccessCode,
@@ -12,7 +11,7 @@ import {
 } from "../../utils/constUtils";
 import { passwordField, captchaField, captchaIdField, emailField, rememberPasswordField } from "../../utils/apiField";
 import { DBService } from "./db.service";
-import { SendCodeReturn } from "../../utils/common.interface";
+import { ReturnInterface, TokenInterface, LoginUser } from "../../utils/common.interface";
 import { AuthService } from "./auth.service";
 import { CaptchaService } from "./captcha.service";
 import { AccountService } from "./account.service";
@@ -33,7 +32,7 @@ export class LoginService implements IComponentLifecycle {
   initialize() {}
 
   // 登录
-  public async login(values: LoginUser): Promise<SendCodeReturn> {
+  public async login(values: LoginUser): Promise<ReturnInterface<TokenInterface>> {
     // 验证码是否正确
     const captchaInput = values[captchaField];
     const captchaId = values[captchaIdField];

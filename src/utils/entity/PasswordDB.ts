@@ -1,4 +1,4 @@
-import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column } from "typeorm";
+import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column, Index } from "typeorm";
 @Entity()
 export class PasswordDB extends BaseEntity {
   @ObjectIdColumn()
@@ -7,6 +7,7 @@ export class PasswordDB extends BaseEntity {
   @Column()
   password: string;
 
-  @Column({ unique: true })
+  @Column()
+  @Index({ unique: true })
   userId: ObjectID;
 }

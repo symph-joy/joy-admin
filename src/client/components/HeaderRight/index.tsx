@@ -4,7 +4,7 @@ import { Inject } from "@symph/core";
 import { UserModel } from "../../model/user.model";
 import { Menu, Dropdown, Button } from "antd";
 import { Link } from "react-router-dom";
-import { ChangePassword, UserCenterText, Logout } from "../../../utils/constUtils";
+import { UserCenterText, Logout } from "../../../utils/constUtils";
 import { LoginModel } from "../../model/login.model";
 
 @ReactController()

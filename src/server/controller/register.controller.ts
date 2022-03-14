@@ -15,14 +15,14 @@ export class RegisterController {
   }
 
   @Get("/sendEmailCode")
-  async sendEmailCode(@Query("email") email: string): Promise<ControllerReturn> {
+  async sendEmailCode(@Query("email") email: string): Promise<ControllerReturn<null>> {
     return {
       data: await this.emailService.sendEmailCode(email),
     };
   }
 
   @Post("/register")
-  async register(@Body() values: string): Promise<ControllerReturn> {
+  async register(@Body() values: string): Promise<ControllerReturn<null>> {
     return {
       data: await this.registerService.register(JSON.parse(values)),
     };

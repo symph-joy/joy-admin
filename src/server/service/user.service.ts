@@ -1,11 +1,9 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import { DBService } from "./db.service";
-import { Payload, SendCodeReturn, UserInterface } from "../../utils/common.interface";
+import { Payload, ReturnInterface, UserInterface } from "../../utils/common.interface";
 import {
   GetSuccess,
   NotExistUser,
-  RegisterFail,
-  RegisterSuccess,
   SuccessCode,
   UpdateFail,
   UpdateSuccess,
@@ -13,12 +11,13 @@ import {
   UserDeleteSuccess,
   UsernameExist,
   WrongCode,
+  UserAddFail,
+  UserAddSuccess,
 } from "../../utils/constUtils";
-import { User } from "../../utils/entity/UserDB";
+import { UserDB } from "../../utils/entity/UserDB";
 import { ObjectId } from "mongodb";
-import { RegisterUser } from "../../utils/register.interface";
+import { RegisterUser } from "../../utils/common.interface";
 import { emailCodeField, emailField, passwordField } from "../../utils/apiField";
-import { EmailCodeDB } from "../../utils/entity/EmailCodeDB";
 import { EmailService } from "./email.service";
 import { v1 as uuidv1 } from "uuid";
 import { PasswordService } from "./password.service";
@@ -38,7 +37,7 @@ export class UserService implements IComponentLifecycle {
   initialize() {}
 
   // 新增用户
-  public async addUser(values: RegisterUser): Promise<SendCodeReturn> {
+  public async addUser(values: RegisterUser): Promise<ReturnInterface<null>> {
     const email = values[emailField];
     const emailCode = values[emailCodeField];
     // 邮箱和激活码是否匹配
@@ -46,43 +45,42 @@ export class UserService implements IComponentLifecycle {
     if (res.code !== SuccessCode) {
       return res;
     }
+
+    const password = values[passwordField];
     const username = uuidv1();
-    const user = new User();
+    return this.connection
+      .transaction(async (transactionalEntityManager) => {
+        const user = await this.addUserToDB(username, email, transactionalEntityManager);
+        await this.passwordService.addPassword(password, user._id, transactionalEntityManager);
+        await this.accountService.addAccount(email, username, user._id, transactionalEntityManager);
+      })
+      .then(() => {
+        this.emailService.deleteEmailCode(email);
+        return {
+          code: SuccessCode,
+          message: UserAddSuccess,
+        };
+      })
+      .catch((e) => {
+        console.log(e);
+        return {
+          code: WrongCode,
+          message: UserAddFail,
+        };
+      });
+  }
+
+  public async addUserToDB(username: string, email: string, transactionalEntityManager) {
+    const user = new UserDB();
     user.username = username;
     user.email = email;
-    let userRes: UserInterface;
-    try {
-      userRes = await this.connection.manager.save(user);
-    } catch (e) {
-      return {
-        code: WrongCode,
-        message: RegisterFail,
-      };
-    }
-    this.connection.manager.delete(EmailCodeDB, { email });
-    const password = values[passwordField];
-    const resAll = await Promise.all([
-      this.passwordService.addPassword(password, userRes._id),
-      this.accountService.addAccount(email, username, userRes._id),
-    ]);
-    if (resAll[0].code === WrongCode) {
-      this.deleteOnlyUser(userRes._id);
-      return resAll[0];
-    }
-    if (resAll[1].code === WrongCode) {
-      this.deleteOnlyUser(userRes._id);
-      return resAll[1];
-    }
-    return {
-      code: SuccessCode,
-      message: RegisterSuccess,
-    };
+    return await transactionalEntityManager.save(user);
   }
 
   // 删除User，不删除password和account
-  public async deleteOnlyUser(userId: ObjectID): Promise<SendCodeReturn> {
+  public async deleteOnlyUser(userId: ObjectID): Promise<ReturnInterface<null>> {
     try {
-      await this.connection.manager.deleteById(User, userId);
+      await this.connection.manager.deleteById(UserDB, userId);
     } catch (e) {
       return {
         code: WrongCode,
@@ -95,7 +93,7 @@ export class UserService implements IComponentLifecycle {
     };
   }
 
-  public async updateUsername(userId: string, username: string): Promise<SendCodeReturn> {
+  public async updateUsername(userId: string, username: string): Promise<ReturnInterface<null>> {
     const _id = new ObjectId(userId) as unknown as ObjectID;
     const hasUser = await this.getUserByOptions({ username });
     if (!hasUser) {
@@ -127,18 +125,18 @@ export class UserService implements IComponentLifecycle {
   }
 
   public upDateUser(_id: ObjectID, options: object) {
-    return this.connection.manager.update(User, _id, options);
+    return this.connection.manager.update(UserDB, _id, options);
   }
 
   public async getUserByOptions(options: object): Promise<UserInterface> {
-    return await this.connection.manager.findOne(User, options);
+    return await this.connection.manager.findOne(UserDB, options);
   }
 
-  public async getUserByToken(payload: SendCodeReturn): Promise<SendCodeReturn> {
-    if (payload.code === WrongCode) {
-      return payload;
+  public async getUserByToken(res: ReturnInterface<Payload>): Promise<ReturnInterface<UserInterface | Payload>> {
+    if (res.code === WrongCode) {
+      return res;
     } else {
-      const data = payload.data as Payload;
+      const data = res.data;
       const user = await this.getUserByOptions({ _id: new ObjectId(data.userId) });
       if (user) {
         return {

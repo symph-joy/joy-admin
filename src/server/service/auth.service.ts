@@ -2,7 +2,7 @@ import { Component, IComponentLifecycle } from "@symph/core";
 import jwt from "jsonwebtoken";
 import { Value } from "@symph/config";
 import { ObjectID } from "typeorm";
-import { SendCodeReturn } from "../../utils/common.interface";
+import { Payload, ReturnInterface } from "../../utils/common.interface";
 import { CheckSuccess, ExpiredUser, SuccessCode, WrongCode, WrongToken } from "../../utils/constUtils";
 
 @Component()
@@ -27,8 +27,8 @@ export class AuthService implements IComponentLifecycle {
     return token;
   }
 
-  public checkToken(token: string): SendCodeReturn {
-    const payload = jwt.verify(token, this.secret, (err, decoded) => {
+  public checkToken(token: string): ReturnInterface<Payload> {
+    const res = jwt.verify(token, this.secret, (err, decoded) => {
       if (err) {
         if (err.name === "TokenExpiredError") {
           return {
@@ -49,6 +49,6 @@ export class AuthService implements IComponentLifecycle {
         };
       }
     });
-    return payload as unknown as SendCodeReturn;
+    return res as unknown as ReturnInterface<Payload>;
   }
 }

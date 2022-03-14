@@ -1,16 +1,7 @@
 import { Component, IComponentLifecycle } from "@symph/core";
-import {
-  WrongCode,
-  SuccessCode,
-  PasswordAddFail,
-  PasswordAddSuccess,
-  PasswordWrong,
-  UpdateFail,
-  UpdateSuccess,
-  PasswordRight,
-} from "../../utils/constUtils";
+import { WrongCode, SuccessCode, PasswordWrong, UpdateFail, UpdateSuccess, PasswordRight } from "../../utils/constUtils";
 import { DBService } from "./db.service";
-import { PasswordInterface, SendCodeReturn } from "../../utils/common.interface";
+import { PasswordInterface, ReturnInterface } from "../../utils/common.interface";
 import { PasswordDB } from "../../utils/entity/PasswordDB";
 import bcrypt from "bcryptjs";
 import { ObjectID } from "typeorm";
@@ -25,27 +16,14 @@ export class PasswordService implements IComponentLifecycle {
   initialize() {}
 
   // 添加密码
-  public async addPassword(realPassword: string, userId: ObjectID): Promise<SendCodeReturn> {
+  public async addPassword(realPassword: string, userId: ObjectID, transactionalEntityManager) {
     const passwordDB = new PasswordDB();
     passwordDB.password = this.encrypt(realPassword);
     passwordDB.userId = userId;
-    let res: PasswordInterface;
-    try {
-      res = await this.connection.manager.save(passwordDB);
-    } catch (e) {
-      return {
-        code: WrongCode,
-        message: PasswordAddFail,
-      };
-    }
-    return {
-      code: SuccessCode,
-      message: PasswordAddSuccess,
-      data: res,
-    };
+    return await transactionalEntityManager.save(passwordDB);
   }
 
-  public async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<SendCodeReturn> {
+  public async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<ReturnInterface<null>> {
     const resPassword = await this.checkPassword(new ObjectId(userId) as unknown as ObjectID, oldPassword);
     if (resPassword.code === WrongCode) {
       return {
@@ -80,7 +58,7 @@ export class PasswordService implements IComponentLifecycle {
   }
 
   // 验证密码是否正确
-  public async checkPassword(userId: ObjectID, password: string): Promise<SendCodeReturn> {
+  public async checkPassword(userId: ObjectID, password: string): Promise<ReturnInterface<PasswordInterface>> {
     const userPassword = await this.getPassword(userId);
     if (!bcrypt.compareSync(password, userPassword.password)) {
       return {

@@ -5,7 +5,7 @@ import { RegisterModel } from "../../model/register.model";
 import { CaptchaModel } from "../../model/captcha.model";
 import styles from "./index.less";
 import { Form, Input, Button, FormInstance, message, Modal } from "antd";
-import { RegisterUser } from "../../../utils/register.interface";
+import { RegisterUser } from "../../../utils/common.interface";
 import { emailReg } from "../../../utils/RegExp";
 import { Link } from "@symph/react/router-dom";
 import {
