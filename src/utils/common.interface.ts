@@ -14,6 +14,13 @@ export interface RegisterUser {
   emailCode: string;
 }
 
+export interface ChangeUserInterface {
+  email?: string;
+  emailCode?: string;
+  username?: string;
+  userId: string;
+}
+
 // 邮箱
 export interface EmailOption {
   host: string;

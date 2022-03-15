@@ -1,4 +1,4 @@
-import { Entity, Column, ObjectIdColumn, ObjectID, Index, BaseEntity } from "typeorm";
+import { Entity, Column, ObjectIdColumn, ObjectID, Index, BaseEntity, CreateDateColumn } from "typeorm";
 
 @Entity()
 export class CaptchaDB extends BaseEntity {
@@ -12,6 +12,6 @@ export class CaptchaDB extends BaseEntity {
   @Index({ unique: true })
   captchaId: string;
 
-  @Column()
-  expiration: number;
+  @CreateDateColumn()
+  createdDate: Date;
 }

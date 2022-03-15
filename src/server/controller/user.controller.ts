@@ -12,27 +12,47 @@ export class UserController {
   constructor(private authService: AuthService, private userService: UserService, private passwordService: PasswordService) {}
 
   @Get("/getUserByToken")
-  async getUserByToken(@Request() req: FastifyRequest): Promise<ControllerReturn<UserDB | Payload>> {
-    const token = req.cookies.token;
-    const res = await this.authService.checkToken(token);
-    return {
-      data: await this.userService.getUserByToken(res),
-    };
-  }
-
-  @Post("/updateUsername")
-  async updateUsername(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn<Payload>> {
+  async getUserByToken(@Request() req: FastifyRequest): Promise<ControllerReturn<UserDB>> {
     const token = req.cookies.token;
     const payload = await this.authService.checkToken(token);
     if (payload.code === SuccessCode) {
-      const { userId, username } = JSON.parse(values);
-      const res = await this.userService.updateUsername(userId, username);
+      return {
+        data: await this.userService.getUserByToken(payload),
+      };
+    } else {
+      return {
+        data: payload as ReturnInterface<null>,
+      };
+    }
+  }
+
+  @Get("/getAllUser")
+  async getAllUser(@Request() req: FastifyRequest): Promise<ControllerReturn<UserDB[]>> {
+    const token = req.cookies.token;
+    const payload = await this.authService.checkToken(token);
+    if (payload.code === SuccessCode) {
+      return {
+        data: await this.userService.getAllUser(),
+      };
+    } else {
+      return {
+        data: payload as ReturnInterface<null>,
+      };
+    }
+  }
+
+  @Post("/updateUserMessage")
+  async updateUserMessage(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn<null>> {
+    const token = req.cookies.token;
+    const payload = await this.authService.checkToken(token);
+    if (payload.code === SuccessCode) {
+      const res = await this.userService.updateUserMessage(JSON.parse(values));
       return {
         data: res,
       };
     } else {
       return {
-        data: payload,
+        data: payload as ReturnInterface<null>,
       };
     }
   }

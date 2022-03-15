@@ -1,6 +1,6 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import { DBService } from "./db.service";
-import { Payload, ReturnInterface, RoleEnum } from "../../utils/common.interface";
+import { ChangeUserInterface, Payload, ReturnInterface, RoleEnum } from "../../utils/common.interface";
 import {
   GetSuccess,
   NotExistUser,
@@ -17,7 +17,7 @@ import {
 import { UserDB } from "../../utils/entity/UserDB";
 import { ObjectId } from "mongodb";
 import { RegisterUser } from "../../utils/common.interface";
-import { emailCodeField, emailField, passwordField } from "../../utils/apiField";
+import { emailCodeField, emailField, passwordField, usernameField } from "../../utils/apiField";
 import { EmailService } from "./email.service";
 import { v1 as uuidv1 } from "uuid";
 import { PasswordService } from "./password.service";
@@ -69,18 +69,37 @@ export class UserService implements IComponentLifecycle {
       });
   }
 
-  // 修改用户名
-  public async updateUsername(userId: string, username: string): Promise<ReturnInterface<null>> {
+  // 修改用户
+  public async updateUserMessage(values: ChangeUserInterface): Promise<ReturnInterface<null>> {
+    const { userId } = values;
     const _id = new ObjectId(userId) as unknown as ObjectID;
     const hasUser = await this.getUserByOptions({ _id: userId });
     if (!hasUser) {
+      const params = {};
+      const email = values[emailField];
+      const username = values[usernameField];
+      if (email) {
+        const emailCode = values[emailCodeField];
+        // 邮箱和激活码是否匹配
+        const res = await this.emailService.checkEmailCodeIsRight(email, emailCode);
+        if (res.code !== SuccessCode) {
+          return res;
+        }
+        params[emailField] = email;
+      }
+      if (username) {
+        params[usernameField] = username;
+      }
       return this.connection
         .transaction(async (transactionalEntityManager) => {
-          const res = await this.updateUser(_id, { username }, transactionalEntityManager);
-          const res1 = await this.accountService.updateAccountByUserId(_id, { username }, transactionalEntityManager);
+          const res = await this.updateUser(_id, { ...params }, transactionalEntityManager);
+          const res1 = await this.accountService.updateAccountByUserId(_id, { ...params }, transactionalEntityManager);
           return [res, res1];
         })
         .then((res) => {
+          if (email) {
+            this.emailService.deleteEmailCode(email);
+          }
           if (res[0].affected === 1 && res[1].affected === 1) {
             return {
               code: SuccessCode,
@@ -124,31 +143,43 @@ export class UserService implements IComponentLifecycle {
     return await this.connection.manager.findOne(UserDB, options);
   }
 
-  public async getUserByToken(res: ReturnInterface<Payload>): Promise<ReturnInterface<UserDB | Payload>> {
-    if (res.code === WrongCode) {
-      return res;
-    } else {
-      const data = res.data;
-      const user = await this.getUserByOptions({ _id: new ObjectId(data.userId) });
-      if (user) {
-        if (user.roleId === RoleEnum.Common) {
-          return {
-            message: CommonUser,
-            code: NoPermissionCode,
-          };
-        } else {
-          return {
-            message: GetSuccess,
-            code: SuccessCode,
-            data: user,
-          };
-        }
+  public async getUserByToken(res: ReturnInterface<Payload>): Promise<ReturnInterface<UserDB>> {
+    const data = res.data;
+    const user = await this.getUserByOptions({ _id: new ObjectId(data.userId) });
+    if (user) {
+      if (user.roleId === RoleEnum.Common) {
+        return {
+          message: CommonUser,
+          code: NoPermissionCode,
+        };
       } else {
         return {
-          message: NotExistUser,
-          code: WrongCode,
+          message: GetSuccess,
+          code: SuccessCode,
+          data: user,
         };
       }
+    } else {
+      return {
+        message: NotExistUser,
+        code: WrongCode,
+      };
+    }
+  }
+
+  public async getAllUser(): Promise<ReturnInterface<UserDB[]>> {
+    const users = await this.connection.manager.find(UserDB);
+    if (users) {
+      return {
+        message: GetSuccess,
+        code: SuccessCode,
+        data: users,
+      };
+    } else {
+      return {
+        message: NotExistUser,
+        code: WrongCode,
+      };
     }
   }
 }

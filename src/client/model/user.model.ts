@@ -4,6 +4,7 @@ import { ReactFetchService } from "@symph/joy";
 import { SuccessCode } from "../../utils/constUtils";
 import { message } from "antd";
 import { UserDB } from "../../utils/entity/UserDB";
+import { ChangeUserInterface, ReturnInterface } from "../../utils/common.interface";
 
 @ReactModel()
 export class UserModel extends BaseReactModel<{
@@ -35,25 +36,15 @@ export class UserModel extends BaseReactModel<{
     }
   }
 
-  async updateUsername(username: string) {
-    const resp = await this.joyFetchService.fetchApi("/updateUsername", {
+  async updateUserMessage(values: ChangeUserInterface): Promise<ReturnInterface<null>> {
+    const resp = await this.joyFetchService.fetchApi("/updateUserMessage", {
       method: "POST",
       body: JSON.stringify({
         userId: this.state.user?._id,
-        username,
+        ...values,
       }),
     });
     const respJson = await resp.json();
-    const res = respJson.data;
-    if (res.code === SuccessCode) {
-      const { user } = this.state;
-      user.username = username;
-      this.setState({
-        user,
-      });
-      message.success(res.message);
-    } else {
-      message.error(res.message);
-    }
+    return respJson.data;
   }
 }

@@ -6,10 +6,8 @@ import { UserModel } from "../../../model/user.model";
 import { confirmPasswordField, emailField, newPasswordField, oldPasswordField, usernameField } from "../../../../utils/apiField";
 import { Button, Form, FormInstance, Input, message, Tabs } from "antd";
 import {
-  ChangeEmail,
   ChangePassword,
   ConfirmPasswordText,
-  EmailText,
   NewPasswordText,
   noConfirmPassword,
   noNewPassword,
@@ -17,17 +15,20 @@ import {
   noUsername,
   OldPasswordText,
   PasswordAreNotSame,
+  PasswordNotChange,
   SaveText,
   SuccessCode,
   UserCenterText,
-  UsernameSame,
+  UsernameEmailSame,
   UsernameText,
 } from "../../../../utils/constUtils";
 import { PasswordModel } from "../../../model/password.model";
-import { ReturnInterface } from "../../../../utils/common.interface";
+import { EmailModel } from "../../../model/email.model";
+import Email from "../../../components/Email";
+import { ChangeUserInterface } from "../../../../utils/common.interface";
 const { TabPane } = Tabs;
 @ReactController()
-export default class AccountController extends BaseReactController {
+export default class UserCenter extends BaseReactController {
   @Inject()
   authModel: AuthModel;
 
@@ -37,56 +38,74 @@ export default class AccountController extends BaseReactController {
   @Inject()
   passwordModel: PasswordModel;
 
+  @Inject()
+  emailModel: EmailModel;
+
   formRef: RefObject<FormInstance> = React.createRef();
 
   formPasswordRef: RefObject<FormInstance> = React.createRef();
 
-  state = {
-    validateStatus: "success",
-  };
-
   async componentDidMount(): Promise<void> {
-    await this.authModel.checkToken();
     const { user } = this.userModel.state;
     if (!user) {
       await this.userModel.getUserByToken();
     }
     this.formRef.current.setFieldsValue({
       username: this.userModel.state.user?.username,
+      email: this.userModel.state.user?.email,
     });
   }
 
-  changeUsername = (values: { username: string }) => {
+  onFinish = async (values: ChangeUserInterface) => {
+    const email = values[emailField];
     const username = values[usernameField];
-    if (username !== this.userModel.state.user[usernameField]) {
-      this.userModel.updateUsername(username);
+    const { email: oldEmail, username: oldUsername } = this.userModel.state.user;
+    if (username === oldUsername && email === oldEmail) {
+      message.error(UsernameEmailSame);
     } else {
-      message.error(UsernameSame);
+      if (username === oldUsername) {
+        values[usernameField] = undefined;
+      }
+      if (email === oldEmail) {
+        values[emailField] = undefined;
+      }
+      const res = await this.userModel.updateUserMessage(values);
+      if (res.code !== SuccessCode) {
+        message.error(res.message);
+      } else {
+        message.success(res.message);
+        location.reload();
+      }
     }
   };
 
   changePassword = async (values) => {
-    const res = await this.passwordModel.changePassword(values);
-
-    if (res.code === SuccessCode) {
-      // 刷新页面
-      message.success(res.message);
+    if (values[newPasswordField] === values[oldPasswordField]) {
+      message.error(PasswordNotChange);
     } else {
-      message.error(res.message);
+      const res = await this.passwordModel.changePassword(values);
+      if (res.code === SuccessCode) {
+        message.success(res.message);
+        setTimeout(async () => {
+          const date = new Date();
+          const min = date.getMinutes();
+          date.setMinutes(min - 5);
+          await this.authModel.deleteTokenAll();
+          document.cookie = `token=;expires=${date}`;
+          this.props.navigate("/login");
+        }, 1000);
+      } else {
+        message.error(res.message);
+      }
     }
   };
 
   renderView(): ReactNode {
-    const { user } = this.userModel.state;
     return (
       <Tabs defaultActiveKey="1">
         <TabPane tab={UserCenterText} key="1">
-          <Form ref={this.formRef} name="changeUsername" autoComplete="off" onFinish={this.changeUsername}>
-            <Form.Item label={EmailText}>
-              <span>
-                {user && user[emailField]} <Button>{ChangeEmail}</Button>
-              </span>
-            </Form.Item>
+          <Form ref={this.formRef} name="change" autoComplete="off" onFinish={this.onFinish}>
+            <Email type="change" style={{ width: 400 }} formRef={this.formRef} />
             <Form.Item rules={[{ required: true, message: noUsername }]} style={{ width: 400 }} label={UsernameText} name={usernameField}>
               <Input />
             </Form.Item>

@@ -42,8 +42,9 @@ export class CaptchaService implements IComponentLifecycle {
         code: NotExistCode,
       };
     }
-    const date = new Date().getTime();
-    if (captchaDB.expiration < date) {
+    const date = new Date();
+    const expiration = new Date(date.getMinutes() - 5);
+    if (captchaDB.createdDate < expiration) {
       this.deleteCaptcha(captchaDB);
       return {
         code: WrongCode,
@@ -67,10 +68,6 @@ export class CaptchaService implements IComponentLifecycle {
     const captchaDb = new CaptchaDB();
     captchaDb.captcha = captchaText.toLowerCase();
     captchaDb.captchaId = captchaId;
-    const date = new Date();
-    const min = date.getMinutes();
-    date.setMinutes(min + 5);
-    captchaDb.expiration = date.getTime();
     await this.connection.manager.save(captchaDb);
   }
 

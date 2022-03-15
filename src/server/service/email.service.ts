@@ -12,6 +12,7 @@ import {
   WrongCode,
   EmailCodeRight,
   ExpiredEmailCode,
+  SendFail,
 } from "../../utils/constUtils";
 import { UserDB } from "../../utils/entity/UserDB";
 import { EmailCodeDB } from "../../utils/entity/EmailCodeDB";
@@ -61,7 +62,7 @@ export class EmailService implements IComponentLifecycle {
       transporter.sendMail(mailOptions, async (err, info) => {
         if (err) {
           console.log(err);
-          reject({ message: err.response, code: WrongCode });
+          reject({ message: SendFail, code: WrongCode });
         } else {
           // 邮件发送成功再存数据库
           await this.bindEmailAndEmailCode(email, emailCode);
@@ -94,22 +95,23 @@ export class EmailService implements IComponentLifecycle {
 
   // 验证邮箱和激活码是否匹配
   public async checkEmailCodeIsRight(email: string, emailCode: string): Promise<ReturnInterface<null>> {
-    const res = await this.getEmailCode(email);
-    if (!res) {
+    const emailCodeDB = await this.getEmailCode(email);
+    if (!emailCodeDB) {
       return {
         code: NotExistCode,
         message: NotExistEmailCode,
       };
     }
-    const date = new Date().getTime();
-    if (res.expiration < date) {
-      this.deleteEmailCode(email);
+    const date = new Date();
+    const expiration = new Date(date.getMinutes() - 5);
+    if (emailCodeDB.createdDate < expiration) {
+      this.deleteEmailCode(emailCodeDB.email);
       return {
         code: WrongCode,
         message: ExpiredEmailCode,
       };
     }
-    if (res?.emailCode === emailCode.toLowerCase()) {
+    if (emailCodeDB?.emailCode === emailCode.toLowerCase()) {
       return {
         code: SuccessCode,
         message: EmailCodeRight,
@@ -126,10 +128,6 @@ export class EmailService implements IComponentLifecycle {
     const emailCodeDB = new EmailCodeDB();
     emailCodeDB.email = email;
     emailCodeDB.emailCode = emailCode;
-    const date = new Date();
-    const min = date.getMinutes();
-    date.setMinutes(min + 5);
-    emailCodeDB.expiration = date.getTime();
     await this.connection.manager.save(emailCodeDB);
   }
 

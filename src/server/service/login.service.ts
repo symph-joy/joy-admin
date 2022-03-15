@@ -75,6 +75,7 @@ export class LoginService implements IComponentLifecycle {
         const user = await this.userService.getUserByOptions({ _id: account.userId });
         if (user?.roleId === RoleEnum.Admin) {
           const token = this.authService.generateToken(account.userId);
+          const rememberPassword = values[rememberPasswordField] ? true : false;
           this.authService.addToken(user._id, token);
           if (account.wrongTime > 0) {
             this.accountService.updateAccount(account._id, { wrongTime: 0 });
@@ -82,7 +83,7 @@ export class LoginService implements IComponentLifecycle {
           return {
             data: {
               token,
-              rememberPassword: values[rememberPasswordField] ? true : false,
+              rememberPassword,
             },
             message: LoginSuccess,
             code: SuccessCode,

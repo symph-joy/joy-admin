@@ -1,4 +1,4 @@
-import { Entity, Column, ObjectIdColumn, ObjectID, BaseEntity } from "typeorm";
+import { Entity, Column, ObjectIdColumn, ObjectID, BaseEntity, CreateDateColumn } from "typeorm";
 
 @Entity()
 export class EmailCodeDB extends BaseEntity {
@@ -11,6 +11,6 @@ export class EmailCodeDB extends BaseEntity {
   @Column()
   emailCode: string;
 
-  @Column()
-  expiration: number;
+  @CreateDateColumn()
+  createdDate: Date;
 }

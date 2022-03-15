@@ -6,6 +6,7 @@ import { Menu, Dropdown, Button } from "antd";
 import { Link } from "react-router-dom";
 import { UserCenterText, Logout } from "../../../utils/constUtils";
 import { LoginModel } from "../../model/login.model";
+import { AuthModel } from "../../model/auth.model";
 
 @ReactController()
 export default class HeaderRight extends BaseReactController {
@@ -15,6 +16,9 @@ export default class HeaderRight extends BaseReactController {
   @Inject()
   loginModel: LoginModel;
 
+  @Inject()
+  authModel: AuthModel;
+
   async componentDidMount(): Promise<void> {
     const { user } = this.userModel.state;
     if (!user) {
@@ -22,12 +26,12 @@ export default class HeaderRight extends BaseReactController {
     }
   }
 
-  handleLogout = () => {
+  handleLogout = async () => {
     const date = new Date();
     const min = date.getMinutes();
     date.setMinutes(min - 5);
+    await this.authModel.deleteTokenByToken();
     document.cookie = `token=;expires=${date}`;
-    console.log(document.cookie);
     this.props.navigate("/login");
   };
 

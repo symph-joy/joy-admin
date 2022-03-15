@@ -19,10 +19,8 @@ export class AuthModel extends BaseReactModel<{}> {
     const respJson = await resp.json();
     const res = await respJson.data;
     if (res.code === SuccessCode) {
-      console.log(location);
-
-      if (location.pathname !== "/menu") {
-        // location.href = "/menu";
+      if (!location.pathname.includes("menu")) {
+        location.href = "/menu";
       }
     } else {
       if (location.pathname !== "/login") {
@@ -32,5 +30,13 @@ export class AuthModel extends BaseReactModel<{}> {
         }, 1000);
       }
     }
+  }
+
+  async deleteTokenByToken() {
+    await this.joyFetchService.fetchApi("/deleteTokenByToken");
+  }
+
+  async deleteTokenAll() {
+    await this.joyFetchService.fetchApi("/deleteTokenAll");
   }
 }

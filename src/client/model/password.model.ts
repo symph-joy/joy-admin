@@ -25,7 +25,7 @@ export class PasswordModel extends BaseReactModel<{}> {
     values[newPasswordField] = this.encryptByMD5(values[newPasswordField]);
     values[oldPasswordField] = this.encryptByMD5(values[oldPasswordField]);
     values.userId = this.userModel.state.user._id;
-    values[confirmPasswordField] = null;
+    values[confirmPasswordField] = undefined;
     const resp = await this.joyFetchService.fetchApi("/changePassword", { method: "POST", body: JSON.stringify(values) });
     const respJson = await resp.json();
     return respJson.data;
