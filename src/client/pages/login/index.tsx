@@ -23,6 +23,8 @@ import { CaptchaModel } from "../../model/captcha.model";
 import { passwordField, captchaField, rememberPasswordField, emailField } from "../../../utils/apiField";
 import { LoginUser } from "../../../utils/common.interface";
 import { PasswordModel } from "../../model/password.model";
+import { UserModel } from "../../model/user.model";
+import { AuthModel } from "../../model/auth.model";
 
 @ReactController()
 export default class LoginController extends BaseReactController {
@@ -33,7 +35,7 @@ export default class LoginController extends BaseReactController {
   public captchaModel: CaptchaModel;
 
   @Inject()
-  public passwordModel: PasswordModel;
+  public authModel: AuthModel;
 
   state = {
     captchaImg: "",
@@ -42,6 +44,10 @@ export default class LoginController extends BaseReactController {
   };
 
   formRef: RefObject<FormInstance> = React.createRef();
+
+  componentDidMount() {
+    this.authModel.checkToken();
+  }
 
   onFinish = async (values: LoginUser) => {
     if (this.state.wrongTime > 4) {

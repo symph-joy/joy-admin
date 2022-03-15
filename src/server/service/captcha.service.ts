@@ -1,6 +1,6 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import svgCaptcha from "svg-captcha";
-import { Captcha, CaptchaImg, CaptchaInterface, ReturnInterface } from "../../utils/common.interface";
+import { Captcha, CaptchaImg, ReturnInterface } from "../../utils/common.interface";
 import { v1 as uuidv1 } from "uuid";
 import { DBService } from "./db.service";
 import { CaptchaDB } from "../../utils/entity/CaptchaDB";
@@ -32,25 +32,6 @@ export class CaptchaService implements IComponentLifecycle {
     };
   }
 
-  public async addCaptcha(captchaId: string, captchaText: string) {
-    const captchaDb = new CaptchaDB();
-    captchaDb.captcha = captchaText.toLowerCase();
-    captchaDb.captchaId = captchaId;
-    const date = new Date();
-    const min = date.getMinutes();
-    date.setMinutes(min + 5);
-    captchaDb.expiration = date.getTime();
-    await this.connection.manager.save(captchaDb);
-  }
-
-  public async getCaptcha(captchaId: string): Promise<CaptchaInterface> {
-    return await this.connection.manager.findOne(CaptchaDB, { captchaId });
-  }
-
-  public deleteCaptcha(captchaDB: CaptchaInterface): void {
-    this.connection.manager.delete(CaptchaDB, captchaDB);
-  }
-
   public async checkCaptcha(values: Captcha): Promise<ReturnInterface<null>> {
     const captchaInput = values[captchaField];
     const captchaId = values[captchaIdField];
@@ -80,5 +61,24 @@ export class CaptchaService implements IComponentLifecycle {
       message: CaptchaRight,
       code: SuccessCode,
     };
+  }
+
+  public async addCaptcha(captchaId: string, captchaText: string) {
+    const captchaDb = new CaptchaDB();
+    captchaDb.captcha = captchaText.toLowerCase();
+    captchaDb.captchaId = captchaId;
+    const date = new Date();
+    const min = date.getMinutes();
+    date.setMinutes(min + 5);
+    captchaDb.expiration = date.getTime();
+    await this.connection.manager.save(captchaDb);
+  }
+
+  public async getCaptcha(captchaId: string): Promise<CaptchaDB> {
+    return await this.connection.manager.findOne(CaptchaDB, { captchaId });
+  }
+
+  public deleteCaptcha(captchaDB: CaptchaDB) {
+    this.connection.manager.delete(CaptchaDB, captchaDB);
   }
 }

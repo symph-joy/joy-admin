@@ -18,11 +18,19 @@ export class AuthModel extends BaseReactModel<{}> {
     const resp = await this.joyFetchService.fetchApi("/checkToken");
     const respJson = await resp.json();
     const res = await respJson.data;
-    if (res.code !== SuccessCode) {
-      message.error(res.message);
-      setTimeout(() => {
-        // this.props.navigate("/login");
-      }, 1000);
+    if (res.code === SuccessCode) {
+      console.log(location);
+
+      if (location.pathname !== "/menu") {
+        // location.href = "/menu";
+      }
+    } else {
+      if (location.pathname !== "/login") {
+        message.error(res.message);
+        setTimeout(() => {
+          location.href = "/login";
+        }, 1000);
+      }
     }
   }
 }

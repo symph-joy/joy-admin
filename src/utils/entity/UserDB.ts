@@ -1,7 +1,7 @@
 import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column, Index } from "typeorm";
 @Entity()
 export class UserDB extends BaseEntity {
-  @ObjectIdColumn()
+  @ObjectIdColumn({ update: false })
   _id: ObjectID;
 
   @Column()

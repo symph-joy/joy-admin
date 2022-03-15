@@ -24,6 +24,7 @@ import {
   UsernameText,
 } from "../../../../utils/constUtils";
 import { PasswordModel } from "../../../model/password.model";
+import { ReturnInterface } from "../../../../utils/common.interface";
 const { TabPane } = Tabs;
 @ReactController()
 export default class AccountController extends BaseReactController {
@@ -66,6 +67,7 @@ export default class AccountController extends BaseReactController {
 
   changePassword = async (values) => {
     const res = await this.passwordModel.changePassword(values);
+
     if (res.code === SuccessCode) {
       // 刷新页面
       message.success(res.message);

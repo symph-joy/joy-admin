@@ -1,6 +1,5 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import { DBService } from "./db.service";
-import { AccountInterface } from "../../utils/common.interface";
 import { AccountDB } from "../../utils/entity/AccountDB";
 import { ObjectID } from "typeorm";
 
@@ -12,7 +11,6 @@ export class AccountService implements IComponentLifecycle {
 
   initialize() {}
 
-  // 添加账户
   public async addAccount(email: string, username: string, userId: ObjectID, transactionalEntityManager) {
     const account = new AccountDB();
     account.email = email;
@@ -22,15 +20,15 @@ export class AccountService implements IComponentLifecycle {
     return await transactionalEntityManager.save(account);
   }
 
-  public async getAccountByOptions(options: object): Promise<AccountInterface> {
-    return await this.connection.manager.findOne(AccountDB, options);
-  }
-
-  public upDateAccount(_id: ObjectID, options: object) {
+  public updateAccount(_id: ObjectID, options: object) {
     return this.connection.manager.update(AccountDB, _id, options);
   }
 
-  public upDateAccountByUserId(userId: ObjectID, options: object) {
-    return this.connection.manager.update(AccountDB, { userId }, options);
+  public updateAccountByUserId(userId: ObjectID, options: object, transactionalEntityManager) {
+    return transactionalEntityManager.update(AccountDB, { userId }, options);
+  }
+
+  public async getAccountByOptions(options: object): Promise<AccountDB> {
+    return await this.connection.manager.findOne(AccountDB, options);
   }
 }

@@ -4,19 +4,13 @@ import { Outlet } from "@symph/react/router-dom";
 import { Layout } from "antd";
 import styles from "./layout.less";
 import HeaderRight from "../../components/HeaderRight";
-import { AuthModel } from "../../model/auth.model";
 import { Inject } from "@symph/core";
 
 const { Header, Sider, Content } = Layout;
 
 @ReactController()
 export default class IndexLayout extends BaseReactController {
-  @Inject()
-  authModel: AuthModel;
 
-  async componentDidMount(): Promise<void> {
-    await this.authModel.checkToken();
-  }
 
   renderView(): ReactNode {
     return (

@@ -40,7 +40,7 @@ export class EmailService implements IComponentLifecycle {
 
   // 向邮箱发送激活码
   public async sendEmailCode(email: string): Promise<ReturnInterface<null>> {
-    const emailCode = this.getEmailCode();
+    const emailCode = this.generateEmailCode();
     const transporter = nodemailer.createTransport(this.configEmailOptions);
     const mailOptions = {
       from: this.configEmailOptions.auth.user, // 发送者
@@ -73,7 +73,7 @@ export class EmailService implements IComponentLifecycle {
   }
 
   // 随机获取激活码
-  private getEmailCode(): string {
+  private generateEmailCode(): string {
     const captcha = svgCaptcha.create({
       inverse: false, // 翻转颜色
       fontSize: 48, // 字体大小
@@ -94,7 +94,7 @@ export class EmailService implements IComponentLifecycle {
 
   // 验证邮箱和激活码是否匹配
   public async checkEmailCodeIsRight(email: string, emailCode: string): Promise<ReturnInterface<null>> {
-    const res = await this.getEmailCodeToDB(email);
+    const res = await this.getEmailCode(email);
     if (!res) {
       return {
         code: NotExistCode,
@@ -137,7 +137,7 @@ export class EmailService implements IComponentLifecycle {
     await this.connection.manager.delete(EmailCodeDB, { email });
   }
 
-  public async getEmailCodeToDB(email: string) {
+  public async getEmailCode(email: string): Promise<EmailCodeDB> {
     return await this.connection.manager.findOne(EmailCodeDB, { email });
   }
 }

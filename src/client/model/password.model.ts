@@ -4,7 +4,7 @@ import { ReactFetchService } from "@symph/joy";
 import crypto from "crypto";
 import { confirmPasswordField, newPasswordField, oldPasswordField } from "../../utils/apiField";
 import { UserModel } from "./user.model";
-import { ChangePasswordInterface, ControllerReturn, Payload } from "../../utils/common.interface";
+import { ChangePasswordInterface, ReturnInterface } from "../../utils/common.interface";
 
 @ReactModel()
 export class PasswordModel extends BaseReactModel<{}> {
@@ -21,7 +21,7 @@ export class PasswordModel extends BaseReactModel<{}> {
     return res;
   }
 
-  async changePassword(values: ChangePasswordInterface): Promise<ControllerReturn<Payload>> {
+  async changePassword(values: ChangePasswordInterface): Promise<ReturnInterface<null>> {
     values[newPasswordField] = this.encryptByMD5(values[newPasswordField]);
     values[oldPasswordField] = this.encryptByMD5(values[oldPasswordField]);
     values.userId = this.userModel.state.user._id;

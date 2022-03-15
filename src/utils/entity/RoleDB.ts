@@ -1,7 +1,7 @@
 import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column, Index } from "typeorm";
 @Entity()
 export class RoleDB extends BaseEntity {
-  @ObjectIdColumn()
+  @ObjectIdColumn({ update: false })
   _id: ObjectID;
 
   @Column()
@@ -10,5 +10,5 @@ export class RoleDB extends BaseEntity {
 
   @Column()
   @Index({ unique: true })
-  role: string;
+  roleName: string;
 }

@@ -1,11 +1,10 @@
 import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column, Index, CreateDateColumn } from "typeorm";
 @Entity()
 export class TokenDB extends BaseEntity {
-  @ObjectIdColumn()
+  @ObjectIdColumn({ update: false })
   _id: ObjectID;
 
-  @Column()
-  @Index({ unique: true })
+  @Column({ update: false })
   userId: ObjectID;
 
   @Column()

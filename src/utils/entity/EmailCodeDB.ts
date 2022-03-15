@@ -2,7 +2,7 @@ import { Entity, Column, ObjectIdColumn, ObjectID, BaseEntity } from "typeorm";
 
 @Entity()
 export class EmailCodeDB extends BaseEntity {
-  @ObjectIdColumn()
+  @ObjectIdColumn({ update: false })
   _id: ObjectID;
 
   @Column()

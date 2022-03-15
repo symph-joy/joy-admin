@@ -1,12 +1,6 @@
 import { ObjectID } from "typeorm";
 
 // 用户
-export interface UserInterface {
-  email: string;
-  _id: ObjectID;
-  username: string;
-}
-
 export interface LoginUser {
   email: string;
   password: string;
@@ -39,35 +33,13 @@ export interface MailOptions {
 }
 
 // 密码
-export interface PasswordInterface {
-  password: string;
-  _id: ObjectID;
-  userId: ObjectID;
-}
-
 export interface ChangePasswordInterface {
   userId: ObjectID;
   oldPassword: string;
   newPassword: string;
 }
 
-// 账户
-export interface AccountInterface {
-  _id: ObjectID;
-  email: string;
-  username: string;
-  userId: ObjectID;
-  wrongTime: number;
-}
-
 // 验证码
-export interface CaptchaInterface {
-  _id: ObjectID;
-  captcha: string;
-  captchaId: string;
-  expiration: number;
-}
-
 export interface CaptchaImg {
   captchaImg: string;
   captchaId: string;
@@ -99,4 +71,10 @@ export interface ReturnInterface<T> {
 
 export interface ControllerReturn<T> {
   data: ReturnInterface<T>;
+}
+
+// 角色
+export enum RoleEnum {
+  Admin = 1,
+  Common = 2,
 }

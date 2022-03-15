@@ -2,12 +2,12 @@ import { ReactModel, BaseReactModel } from "@symph/react";
 import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
 import { SuccessCode } from "../../utils/constUtils";
-import { UserInterface } from "../../utils/common.interface";
 import { message } from "antd";
+import { UserDB } from "../../utils/entity/UserDB";
 
 @ReactModel()
 export class UserModel extends BaseReactModel<{
-  user: UserInterface;
+  user: UserDB;
 }> {
   constructor(@Inject("joyFetchService") private joyFetchService: ReactFetchService) {
     super();
@@ -29,6 +29,9 @@ export class UserModel extends BaseReactModel<{
       });
     } else {
       message.error(res.message);
+      setTimeout(() => {
+        location.href = "/login";
+      }, 1000);
     }
   }
 

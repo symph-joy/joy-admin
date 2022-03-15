@@ -2,7 +2,7 @@ import { Entity, Column, ObjectIdColumn, ObjectID, Index, BaseEntity } from "typ
 
 @Entity()
 export class CaptchaDB extends BaseEntity {
-  @ObjectIdColumn()
+  @ObjectIdColumn({ update: false })
   _id: ObjectID;
 
   @Column()

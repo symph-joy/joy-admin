@@ -1,8 +1,12 @@
 import { BaseEntity, Entity, ObjectIdColumn, ObjectID, Column, Index } from "typeorm";
 @Entity()
 export class AccountDB extends BaseEntity {
-  @ObjectIdColumn()
+  @ObjectIdColumn({ update: false })
   _id: ObjectID;
+
+  @Column({ update: false })
+  @Index({ unique: true })
+  userId: ObjectID;
 
   @Column()
   @Index({ unique: true })
@@ -11,10 +15,6 @@ export class AccountDB extends BaseEntity {
   @Column()
   @Index({ unique: true })
   username: string;
-
-  @Column()
-  @Index({ unique: true })
-  userId: ObjectID;
 
   @Column()
   wrongTime: number;

@@ -1,7 +1,7 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import { WrongCode, SuccessCode, PasswordWrong, UpdateFail, UpdateSuccess, PasswordRight } from "../../utils/constUtils";
 import { DBService } from "./db.service";
-import { PasswordInterface, ReturnInterface } from "../../utils/common.interface";
+import { ReturnInterface } from "../../utils/common.interface";
 import { PasswordDB } from "../../utils/entity/PasswordDB";
 import bcrypt from "bcryptjs";
 import { ObjectID } from "typeorm";
@@ -15,14 +15,7 @@ export class PasswordService implements IComponentLifecycle {
 
   initialize() {}
 
-  // 添加密码
-  public async addPassword(realPassword: string, userId: ObjectID, transactionalEntityManager) {
-    const passwordDB = new PasswordDB();
-    passwordDB.password = this.encrypt(realPassword);
-    passwordDB.userId = userId;
-    return await transactionalEntityManager.save(passwordDB);
-  }
-
+  // 修改密码
   public async changePassword(userId: string, oldPassword: string, newPassword: string): Promise<ReturnInterface<null>> {
     const resPassword = await this.checkPassword(new ObjectId(userId) as unknown as ObjectID, oldPassword);
     if (resPassword.code === WrongCode) {
@@ -32,9 +25,9 @@ export class PasswordService implements IComponentLifecycle {
       };
     } else {
       const password = this.encrypt(newPassword);
-      const passwordDB = resPassword.data as PasswordInterface;
+      const passwordDB = resPassword.data;
       const res = await this.updatePassword(passwordDB._id, password);
-      if (res.raw.matchedCount === 1) {
+      if (res.affected === 1) {
         return {
           message: UpdateSuccess,
           code: SuccessCode,
@@ -48,17 +41,8 @@ export class PasswordService implements IComponentLifecycle {
     }
   }
 
-  // 更改密码
-  public async updatePassword(_id: ObjectID, password: string) {
-    return await this.connection.manager.update(PasswordDB, _id, { password });
-  }
-
-  public async getPassword(userId: ObjectID): Promise<PasswordInterface> {
-    return await this.connection.manager.findOne(PasswordDB, { userId });
-  }
-
   // 验证密码是否正确
-  public async checkPassword(userId: ObjectID, password: string): Promise<ReturnInterface<PasswordInterface>> {
+  public async checkPassword(userId: ObjectID, password: string): Promise<ReturnInterface<PasswordDB>> {
     const userPassword = await this.getPassword(userId);
     if (!bcrypt.compareSync(password, userPassword.password)) {
       return {
@@ -78,5 +62,20 @@ export class PasswordService implements IComponentLifecycle {
   public encrypt(realPassword: string): string {
     const salt = bcrypt.genSaltSync(10);
     return bcrypt.hashSync(realPassword, salt);
+  }
+
+  public async addPassword(realPassword: string, userId: ObjectID, transactionalEntityManager) {
+    const passwordDB = new PasswordDB();
+    passwordDB.password = this.encrypt(realPassword);
+    passwordDB.userId = userId;
+    return await transactionalEntityManager.save(passwordDB);
+  }
+
+  public async updatePassword(_id: ObjectID, password: string) {
+    return await this.connection.manager.update(PasswordDB, _id, { password });
+  }
+
+  public async getPassword(userId: ObjectID): Promise<PasswordDB> {
+    return await this.connection.manager.findOne(PasswordDB, { userId });
   }
 }
