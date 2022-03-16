@@ -20,8 +20,8 @@ export class UserModel extends BaseReactModel<{
     };
   }
 
-  async getUserByToken() {
-    const resp = await this.joyFetchService.fetchApi("/getUserByToken");
+  async getUser() {
+    const resp = await this.joyFetchService.fetchApi("/getUser");
     const respJson = await resp.json();
     const res = respJson.data;
     if (res.code === SuccessCode) {
@@ -34,6 +34,12 @@ export class UserModel extends BaseReactModel<{
         location.href = "/login";
       }, 1000);
     }
+  }
+
+  async getAllUser() {
+    const resp = await this.joyFetchService.fetchApi("/getAllUser");
+    const respJson = await resp.json();
+    return respJson.data;
   }
 
   async updateUserMessage(values: ChangeUserInterface): Promise<ReturnInterface<null>> {

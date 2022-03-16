@@ -5,6 +5,7 @@ import { Layout, Menu } from "antd";
 import styles from "./layout.less";
 import HeaderRight from "../../components/HeaderRight";
 import { Inject } from "@symph/core";
+import { RoleManagerText, UserManagerText } from "../../../utils/constUtils";
 
 const { Header, Sider, Content } = Layout;
 
@@ -22,10 +23,10 @@ export default class IndexLayout extends BaseReactController {
           <Sider theme="light">
             <Menu mode="inline" defaultSelectedKeys={["1"]} style={{ height: "100%", borderRight: 0 }}>
               <Menu.Item key="1">
-                <Link to="/menu/userManager">用户管理</Link>
+                <Link to="/menu/userManager">{UserManagerText}</Link>
               </Menu.Item>
               <Menu.Item key="2">
-                <Link to="/menu/roleManager">角色管理</Link>
+                <Link to="/menu/roleManager">{RoleManagerText}</Link>
               </Menu.Item>
             </Menu>
           </Sider>

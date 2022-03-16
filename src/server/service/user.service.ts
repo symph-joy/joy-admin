@@ -143,9 +143,8 @@ export class UserService implements IComponentLifecycle {
     return await this.connection.manager.findOne(UserDB, options);
   }
 
-  public async getUserByToken(res: ReturnInterface<Payload>): Promise<ReturnInterface<UserDB>> {
-    const data = res.data;
-    const user = await this.getUserByOptions({ _id: new ObjectId(data.userId) });
+  public async getUser(userId: string): Promise<ReturnInterface<UserDB>> {
+    const user = await this.getUserByOptions({ _id: new ObjectId(userId) });
     if (user) {
       if (user.roleId === RoleEnum.Common) {
         return {

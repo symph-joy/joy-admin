@@ -2,75 +2,37 @@ import { Body, Controller, Get, Post, Request } from "@symph/server";
 import { AuthService } from "../service/auth.service";
 import { UserService } from "../service/user.service";
 import { FastifyRequest } from "fastify";
-import { SuccessCode } from "../../utils/constUtils";
-import { ControllerReturn, Payload, ReturnInterface } from "../../utils/common.interface";
+import { ControllerReturn } from "../../utils/common.interface";
 import { PasswordService } from "../service/password.service";
 import { UserDB } from "../../utils/entity/UserDB";
+import { authToken } from "./decorator";
 
 @Controller()
 export class UserController {
   constructor(private authService: AuthService, private userService: UserService, private passwordService: PasswordService) {}
 
-  @Get("/getUserByToken")
-  async getUserByToken(@Request() req: FastifyRequest): Promise<ControllerReturn<UserDB>> {
-    const token = req.cookies.token;
-    const payload = await this.authService.checkToken(token);
-    if (payload.code === SuccessCode) {
-      return {
-        data: await this.userService.getUserByToken(payload),
-      };
-    } else {
-      return {
-        data: payload as ReturnInterface<null>,
-      };
-    }
+  @Get("/getUser")
+  @authToken()
+  async getUser(@Request() req: FastifyRequest): Promise<ControllerReturn<UserDB>> {
+    return this.userService.getUser(req as unknown as string) as unknown as Promise<ControllerReturn<UserDB>>;
   }
 
   @Get("/getAllUser")
+  @authToken()
   async getAllUser(@Request() req: FastifyRequest): Promise<ControllerReturn<UserDB[]>> {
-    const token = req.cookies.token;
-    const payload = await this.authService.checkToken(token);
-    if (payload.code === SuccessCode) {
-      return {
-        data: await this.userService.getAllUser(),
-      };
-    } else {
-      return {
-        data: payload as ReturnInterface<null>,
-      };
-    }
+    return this.userService.getAllUser() as unknown as Promise<ControllerReturn<UserDB[]>>;
   }
 
   @Post("/updateUserMessage")
+  @authToken()
   async updateUserMessage(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn<null>> {
-    const token = req.cookies.token;
-    const payload = await this.authService.checkToken(token);
-    if (payload.code === SuccessCode) {
-      const res = await this.userService.updateUserMessage(JSON.parse(values));
-      return {
-        data: res,
-      };
-    } else {
-      return {
-        data: payload as ReturnInterface<null>,
-      };
-    }
+    return this.userService.updateUserMessage(JSON.parse(values)) as unknown as Promise<ControllerReturn<null>>;
   }
 
   @Post("/changePassword")
+  @authToken()
   async changePassword(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn<null>> {
-    const token = req.cookies.token;
-    const res = await this.authService.checkToken(token);
-    if (res.code === SuccessCode) {
-      const { oldPassword, newPassword, userId } = JSON.parse(values);
-      const res = await this.passwordService.changePassword(userId, oldPassword, newPassword);
-      return {
-        data: res,
-      };
-    } else {
-      return {
-        data: res as ReturnInterface<null>,
-      };
-    }
+    const { oldPassword, newPassword, userId } = JSON.parse(values);
+    return this.passwordService.changePassword(userId, oldPassword, newPassword) as unknown as Promise<ControllerReturn<null>>;
   }
 }

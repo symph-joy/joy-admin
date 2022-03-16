@@ -70,3 +70,49 @@ export const Common = "普通角色";
 export const CommonUser = "您是普通用户，暂无权限";
 export const NoPermissionCode = 10004;
 export const PasswordNotChange = "密码未更改";
+export const UserManagerText = "用户管理";
+export const RoleManagerText = "角色管理";
+
+export const UserManagerColumns = [
+  {
+    title: "用户ID",
+    dataIndex: "_id",
+    key: "_id",
+  },
+  {
+    title: "用户名",
+    dataIndex: "username",
+    key: "username",
+  },
+  {
+    title: "邮箱",
+    dataIndex: "email",
+    key: "email",
+  },
+  {
+    title: "用户角色",
+    dataIndex: "roleId",
+    key: "roleId",
+  },
+  {
+    title: "操作",
+    key: "option",
+  },
+];
+
+export const RoleManagerColumns = [
+  {
+    title: "角色编号",
+    dataIndex: "roleId",
+    key: "roleId",
+  },
+  {
+    title: "角色名称",
+    dataIndex: "roleName",
+    key: "roleName",
+  },
+  {
+    title: "操作",
+    key: "option",
+  },
+];
