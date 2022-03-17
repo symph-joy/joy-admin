@@ -56,29 +56,29 @@ export class LoginService implements IComponentLifecycle {
       }
     }
     // 账户是否存在
-    const email = values[emailField];
-    const account = await this.accountService.getAccountByOptions({ where: { $or: [{ email }, { username: email }] } });
+    const account = values[emailField];
+    const accountDB = await this.accountService.getAccountByOptions({ account });
     if (!account) {
       return {
         message: NotExistUsernameOrEmail,
         code: NotExistCode,
       };
     } else {
-      const resPassword = await this.passwordService.checkPassword(account.userId, values[passwordField]);
+      const resPassword = await this.passwordService.checkPassword(accountDB.userId, values[passwordField]);
       if (resPassword.code === WrongCode) {
-        this.accountService.updateAccount(account._id, { wrongTime: account.wrongTime + 1 });
+        this.accountService.updateAccount(accountDB._id, { wrongTime: accountDB.wrongTime + 1 });
         return {
           message: PasswordWrong,
           code: WrongCode,
         };
       } else {
-        const user = await this.userService.getUserByOptions({ _id: account.userId });
+        const user = await this.userService.getUserByOptions({ _id: accountDB.userId });
         if (user?.roleId === RoleEnum.Admin) {
-          const token = this.authService.generateToken(account.userId);
+          const token = this.authService.generateToken(accountDB.userId);
           const rememberPassword = values[rememberPasswordField] ? true : false;
           this.authService.addToken(user._id, token);
-          if (account.wrongTime > 0) {
-            this.accountService.updateAccount(account._id, { wrongTime: 0 });
+          if (accountDB.wrongTime > 0) {
+            this.accountService.updateAccount(accountDB._id, { wrongTime: 0 });
           }
           return {
             data: {

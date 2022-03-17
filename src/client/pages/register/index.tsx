@@ -8,7 +8,7 @@ import { RegisterUser } from "../../../utils/common.interface";
 import { Link } from "@symph/react/router-dom";
 import { noPassword, RegisterText, PasswordText, LoginText, Registering, SuccessCode } from "../../../utils/constUtils";
 import { RefObject } from "react";
-import { passwordField } from "../../../utils/apiField";
+import { registerPasswordField } from "../../../utils/apiField";
 import Email from "../../components/Email";
 
 @ReactController()
@@ -48,7 +48,7 @@ export default class RegisterController extends BaseReactController {
         <Form ref={this.formRef} className={styles.registerForm} name="register" onFinish={this.onFinish} autoComplete="off">
           <Email formRef={this.formRef} />
 
-          <Form.Item label={PasswordText} name={passwordField} rules={[{ required: true, message: noPassword }]}>
+          <Form.Item label={PasswordText} name={registerPasswordField} rules={[{ required: true, message: noPassword }]}>
             <Input.Password autoComplete="new-password" />
           </Form.Item>
 

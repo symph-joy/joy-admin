@@ -11,13 +11,12 @@ export class AccountService implements IComponentLifecycle {
 
   initialize() {}
 
-  public async addAccount(email: string, username: string, userId: ObjectID, transactionalEntityManager) {
-    const account = new AccountDB();
-    account.email = email;
-    account.username = username;
-    account.userId = userId;
-    account.wrongTime = 0;
-    return await transactionalEntityManager.save(account);
+  public async addAccount(account: string, userId: ObjectID, transactionalEntityManager) {
+    const accountDB = new AccountDB();
+    accountDB.account = account;
+    accountDB.userId = userId;
+    accountDB.wrongTime = 0;
+    return await transactionalEntityManager.save(accountDB);
   }
 
   public updateAccount(_id: ObjectID, options: object) {

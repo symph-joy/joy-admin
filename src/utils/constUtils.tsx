@@ -72,6 +72,8 @@ export const NoPermissionCode = 10004;
 export const PasswordNotChange = "密码未更改";
 export const UserManagerText = "用户管理";
 export const RoleManagerText = "角色管理";
+export const AddUser = "新增用户";
+export const Add = "新增";
 
 export const UserManagerColumns = [
   {

@@ -48,14 +48,18 @@ export class DBService implements IComponentLifecycle {
           realPassword = crypto.createHash("md5").update(realPassword).digest("hex");
           passwordDB.password = bcrypt.hashSync(realPassword, bcrypt.genSaltSync(10));
           passwordDB.userId = user._id;
-          const accountDB = new AccountDB();
-          accountDB.userId = user._id;
-          accountDB.email = email;
-          accountDB.username = Admin;
-          accountDB.wrongTime = 0;
+          const accountDBEmail = new AccountDB();
+          accountDBEmail.userId = user._id;
+          accountDBEmail.account = email;
+          accountDBEmail.wrongTime = 0;
+          const accountDBUsername = new AccountDB();
+          accountDBUsername.userId = user._id;
+          accountDBUsername.account = Admin;
+          accountDBUsername.wrongTime = 0;
           const password = await transactionalEntityManager.save(passwordDB);
-          const account = await transactionalEntityManager.save(accountDB);
-          return [user, password, account];
+          const accountEmail = await transactionalEntityManager.save(accountDBEmail);
+          const accountUsername = await transactionalEntityManager.save(accountDBUsername);
+          return [user, password, accountEmail, accountUsername];
         })
         .then((res) => {
           console.log(res);

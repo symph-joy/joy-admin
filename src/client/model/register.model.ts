@@ -3,7 +3,7 @@ import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
 import { ReturnInterface, RegisterUser } from "../../utils/common.interface";
 import { PasswordModel } from "./password.model";
-import { passwordField } from "../../utils/apiField";
+import { registerPasswordField } from "../../utils/apiField";
 @ReactModel()
 export class RegisterModel extends BaseReactModel<{}> {
   constructor(@Inject("joyFetchService") private joyFetchService: ReactFetchService, private passwordModel: PasswordModel) {
@@ -15,7 +15,7 @@ export class RegisterModel extends BaseReactModel<{}> {
   }
 
   async register(values: RegisterUser): Promise<ReturnInterface<null>> {
-    values[passwordField] = this.passwordModel.encryptByMD5(values[passwordField]);
+    values[registerPasswordField] = this.passwordModel.encryptByMD5(values[registerPasswordField]);
     const resp = await this.joyFetchService.fetchApi("/register", { method: "POST", body: JSON.stringify(values) });
     const respJson = await resp.json();
     return respJson.data;

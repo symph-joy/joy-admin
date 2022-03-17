@@ -5,16 +5,11 @@ export class AccountDB extends BaseEntity {
   _id: ObjectID;
 
   @Column({ update: false })
-  @Index({ unique: true })
   userId: ObjectID;
 
   @Column()
   @Index({ unique: true })
-  email: string;
-
-  @Column()
-  @Index({ unique: true })
-  username: string;
+  account: string;
 
   @Column()
   wrongTime: number;

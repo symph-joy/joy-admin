@@ -1,5 +1,6 @@
 export const usernameField = "username";
 export const passwordField = "password";
+export const registerPasswordField = "registerPassword";
 export const emailField = "email";
 export const emailCodeField = "emailCode";
 export const captchaField = "captcha";

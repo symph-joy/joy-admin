@@ -17,7 +17,7 @@ import {
 import { UserDB } from "../../utils/entity/UserDB";
 import { ObjectId } from "mongodb";
 import { RegisterUser } from "../../utils/common.interface";
-import { emailCodeField, emailField, passwordField, usernameField } from "../../utils/apiField";
+import { emailCodeField, emailField, registerPasswordField, usernameField } from "../../utils/apiField";
 import { EmailService } from "./email.service";
 import { v1 as uuidv1 } from "uuid";
 import { PasswordService } from "./password.service";
@@ -45,13 +45,14 @@ export class UserService implements IComponentLifecycle {
     if (res.code !== SuccessCode) {
       return res;
     }
-    const password = values[passwordField];
+    const password = values[registerPasswordField];
     const username = uuidv1();
     return this.connection
       .transaction(async (transactionalEntityManager) => {
         const user = await this.addUserToDB(username, email, 2, transactionalEntityManager);
         await this.passwordService.addPassword(password, user._id, transactionalEntityManager);
-        await this.accountService.addAccount(email, username, user._id, transactionalEntityManager);
+        await this.accountService.addAccount(email, user._id, transactionalEntityManager);
+        await this.accountService.addAccount(username, user._id, transactionalEntityManager);
       })
       .then(() => {
         this.emailService.deleteEmailCode(email);
