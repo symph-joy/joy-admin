@@ -76,14 +76,14 @@ export class AuthService implements IComponentLifecycle {
     return res as unknown as ReturnInterface<Payload>;
   }
 
-  public async addToken(userId: ObjectID, token: string) {
+  public async addToken(userId: ObjectID, token: string): Promise<void> {
     const tokenDB = new TokenDB();
     tokenDB.token = token;
     tokenDB.userId = userId;
     await this.connection.manager.save(tokenDB);
   }
 
-  public deleteToken(tokenDB: TokenDB) {
+  private deleteToken(tokenDB: TokenDB): void {
     this.connection.manager.delete(TokenDB, tokenDB);
   }
 
@@ -117,7 +117,7 @@ export class AuthService implements IComponentLifecycle {
     }
   }
 
-  public async getToken(options: object): Promise<TokenDB> {
+  private async getToken(options: object): Promise<TokenDB> {
     return await this.connection.manager.findOne(TokenDB, options);
   }
 }

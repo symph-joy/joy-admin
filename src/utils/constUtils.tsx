@@ -5,9 +5,12 @@ export const OldPasswordText = "旧密码";
 export const NewPasswordText = "新密码";
 export const ConfirmPasswordText = "确认密码";
 export const EmailText = "邮箱";
+export const RoleText = "角色";
 export const EmailCodeText = "激活码";
 export const UsernameExist = "用户名已存在！";
+export const UserNoExist = "用户不存在";
 export const noPassword = "请输入密码！";
+export const noEmailActive = "请选择激活状态！";
 export const noEmail = "请输入邮箱！";
 export const noUsername = "请输入用户名！";
 export const noOldPassword = "请输入旧密码！";
@@ -61,6 +64,7 @@ export const DeleteSuccess = "删除成功";
 export const DeleteFail = "删除失败";
 export const UpdateFail = "修改失败，请重试";
 export const UsernameEmailSame = "用户名、邮箱均未改变";
+export const NoChange = "没有内容改变";
 export const UserCenterText = "个人中心";
 export const ChangePassword = "修改密码";
 export const ChangeEmail = "修改邮箱";
@@ -73,34 +77,69 @@ export const PasswordNotChange = "密码未更改";
 export const UserManagerText = "用户管理";
 export const RoleManagerText = "角色管理";
 export const AddUser = "新增用户";
+export const EditUser = "编辑用户";
 export const Add = "新增";
+export const EmailActiveStatus = "激活状态";
+export const EditText = "编辑";
+export default class constUtils {
+  static toArray(enumType) {
+    const a = [];
+    for (const p in enumType) {
+      if (enumType.hasOwnProperty(p)) {
+        a.push(enumType[p]);
+      }
+    }
+    return a;
+  }
 
-export const UserManagerColumns = [
-  {
-    title: "用户ID",
-    dataIndex: "_id",
-    key: "_id",
+  static getItem(enumType, value) {
+    for (const p in enumType) {
+      if (enumType.hasOwnProperty(p) && value === enumType[p].value) {
+        return enumType[p];
+      }
+    }
+    return null;
+  }
+
+  static getItems(enumType, filter) {
+    const items = [];
+    for (const p in enumType) {
+      if (enumType.hasOwnProperty(p) && typeof enumType[p] !== "function") {
+        const item = enumType[p];
+        if (filter) {
+          if (filter(item)) {
+            items.push(item);
+          }
+        } else {
+          items.push(item);
+        }
+      }
+    }
+    return items;
+  }
+
+  static getItemName(enumType, value) {
+    if (value === undefined || value === null) {
+      return null;
+    }
+    for (const p in enumType) {
+      if (enumType.hasOwnProperty(p) && value === enumType[p].value) {
+        return enumType[p].name;
+      }
+    }
+    return null;
+  }
+}
+export const EmailActiveEnum = {
+  ACTIVE: {
+    value: true,
+    name: "已激活",
   },
-  {
-    title: "用户名",
-    dataIndex: "username",
-    key: "username",
+  UN_ACTIVE: {
+    value: false,
+    name: "未激活",
   },
-  {
-    title: "邮箱",
-    dataIndex: "email",
-    key: "email",
-  },
-  {
-    title: "用户角色",
-    dataIndex: "roleId",
-    key: "roleId",
-  },
-  {
-    title: "操作",
-    key: "option",
-  },
-];
+};
 
 export const RoleManagerColumns = [
   {

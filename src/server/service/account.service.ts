@@ -11,7 +11,7 @@ export class AccountService implements IComponentLifecycle {
 
   initialize() {}
 
-  public async addAccount(account: string, userId: ObjectID, transactionalEntityManager) {
+  public async addAccount(account: string, userId: ObjectID, transactionalEntityManager): Promise<AccountDB> {
     const accountDB = new AccountDB();
     accountDB.account = account;
     accountDB.userId = userId;
@@ -23,8 +23,8 @@ export class AccountService implements IComponentLifecycle {
     return this.connection.manager.update(AccountDB, _id, options);
   }
 
-  public updateAccountByUserId(userId: ObjectID, options: object, transactionalEntityManager) {
-    return transactionalEntityManager.update(AccountDB, { userId }, options);
+  public updateAccountByAccount(account: string, options: object, transactionalEntityManager) {
+    return transactionalEntityManager.update(AccountDB, { account }, options);
   }
 
   public async getAccountByOptions(options: object): Promise<AccountDB> {

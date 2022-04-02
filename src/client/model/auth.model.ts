@@ -14,7 +14,7 @@ export class AuthModel extends BaseReactModel<{}> {
     return {};
   }
 
-  async checkToken() {
+  async checkToken(): Promise<void> {
     const resp = await this.joyFetchService.fetchApi("/checkToken");
     const respJson = await resp.json();
     const res = await respJson.data;
@@ -32,11 +32,11 @@ export class AuthModel extends BaseReactModel<{}> {
     }
   }
 
-  async deleteTokenByToken() {
+  async deleteTokenByToken(): Promise<void> {
     await this.joyFetchService.fetchApi("/deleteTokenByToken");
   }
 
-  async deleteTokenAll() {
+  async deleteTokenAll(): Promise<void> {
     await this.joyFetchService.fetchApi("/deleteTokenAll");
   }
 }

@@ -1,7 +1,7 @@
 import React, { ReactNode, RefObject } from "react";
 import { BaseReactController, ReactController } from "@symph/react";
 import { Inject } from "@symph/core";
-import { Button, Form, Input, Modal, message, FormInstance } from "antd";
+import { Button, Form, Input, message, FormInstance } from "antd";
 import {
   EmailText,
   noEmail,
@@ -23,6 +23,7 @@ import { emailReg } from "../../../utils/RegExp";
 import { EmailModel } from "../../model/email.model";
 import { CaptchaModel } from "../../model/captcha.model";
 import { UserModel } from "../../model/user.model";
+import Modal from "../../components/Modal";
 
 @ReactController()
 export default class Email extends BaseReactController {
@@ -117,27 +118,99 @@ export default class Email extends BaseReactController {
 
   renderView(): ReactNode {
     const { IsExistEmail, second, sending, showModal, captchaImg } = this.state;
-    const { style, type } = this.props;
+    const { style, type, email } = this.props;
     const { user } = this.userModel.state;
     const commonRules = [
       { required: true, message: noEmail, validateTrigger: "onChange" },
       { pattern: emailReg, message: EmailErrorMessage, validateTrigger: "onChange" },
     ];
-    const rules = type
-      ? [
-          ...commonRules,
-          ({ setFieldsValue }) => ({
-            required: true,
-            validateTrigger: "onBlur",
-            validator: async (_, value: string) => {
-              if (value) {
-                if (emailReg.test(value)) {
-                  if (value === user?.email) {
+    const rules =
+      type === "change"
+        ? [
+            ...commonRules,
+            ({ setFieldsValue }) => ({
+              required: true,
+              validateTrigger: "onBlur",
+              validator: async (_, value: string) => {
+                if (value) {
+                  if (emailReg.test(value)) {
+                    // 比下面的多一步验证与当前邮箱是否一致
+                    if (value === user?.email) {
+                      this.setState({
+                        IsExistEmail: true,
+                      });
+                      return Promise.resolve();
+                    } else {
+                      const result = await this.emailModel.checkIsExistEmail(value);
+                      if (!result) {
+                        this.setState({
+                          IsExistEmail: false,
+                        });
+                        return Promise.resolve();
+                      } else {
+                        this.setState({
+                          IsExistEmail: true,
+                        });
+                        setFieldsValue({
+                          emailCode: undefined,
+                        });
+                        return Promise.reject(new Error(EmailExistMessage));
+                      }
+                    }
+                  } else {
                     this.setState({
                       IsExistEmail: true,
                     });
-                    return Promise.resolve();
+                    setFieldsValue({
+                      emailCode: undefined,
+                    });
+                    return Promise.reject(new Error(EmailErrorMessage));
+                  }
+                } else {
+                  this.setState({
+                    IsExistEmail: true,
+                  });
+                  setFieldsValue({
+                    emailCode: undefined,
+                  });
+                  return Promise.reject(new Error(noEmail));
+                }
+              },
+            }),
+          ]
+        : type === "addUser"
+        ? [
+            ...commonRules,
+            // 不需要显示激活码
+            () => ({
+              required: true,
+              validateTrigger: "onBlur",
+              validator: async (_, value: string) => {
+                if (value) {
+                  if (emailReg.test(value)) {
+                    const result = await this.emailModel.checkIsExistEmail(value);
+                    if (!result) {
+                      return Promise.resolve();
+                    } else {
+                      return Promise.reject(new Error(EmailExistMessage));
+                    }
                   } else {
+                    return Promise.reject(new Error(EmailErrorMessage));
+                  }
+                } else {
+                  return Promise.reject(new Error(noEmail));
+                }
+              },
+            }),
+          ]
+        : [
+            ...commonRules,
+            ({ setFieldsValue }) => ({
+              required: true,
+              validateTrigger: "onBlur",
+              validator: async (_, value: string) => {
+                if (value) {
+                  if (emailReg.test(value)) {
                     const result = await this.emailModel.checkIsExistEmail(value);
                     if (!result) {
                       this.setState({
@@ -153,42 +226,6 @@ export default class Email extends BaseReactController {
                       });
                       return Promise.reject(new Error(EmailExistMessage));
                     }
-                  }
-                } else {
-                  this.setState({
-                    IsExistEmail: true,
-                  });
-                  setFieldsValue({
-                    emailCode: undefined,
-                  });
-                  return Promise.reject(new Error(EmailErrorMessage));
-                }
-              } else {
-                this.setState({
-                  IsExistEmail: true,
-                });
-                setFieldsValue({
-                  emailCode: undefined,
-                });
-                return Promise.reject(new Error(noEmail));
-              }
-            },
-          }),
-        ]
-      : [
-          ...commonRules,
-          ({ setFieldsValue }) => ({
-            required: true,
-            validateTrigger: "onBlur",
-            validator: async (_, value: string) => {
-              if (value) {
-                if (emailReg.test(value)) {
-                  const result = await this.emailModel.checkIsExistEmail(value);
-                  if (!result) {
-                    this.setState({
-                      IsExistEmail: false,
-                    });
-                    return Promise.resolve();
                   } else {
                     this.setState({
                       IsExistEmail: true,
@@ -196,7 +233,7 @@ export default class Email extends BaseReactController {
                     setFieldsValue({
                       emailCode: undefined,
                     });
-                    return Promise.reject(new Error(EmailExistMessage));
+                    return Promise.reject(new Error(EmailErrorMessage));
                   }
                 } else {
                   this.setState({
@@ -205,23 +242,21 @@ export default class Email extends BaseReactController {
                   setFieldsValue({
                     emailCode: undefined,
                   });
-                  return Promise.reject(new Error(EmailErrorMessage));
+                  return Promise.reject(new Error(noEmail));
                 }
-              } else {
-                this.setState({
-                  IsExistEmail: true,
-                });
-                setFieldsValue({
-                  emailCode: undefined,
-                });
-                return Promise.reject(new Error(noEmail));
-              }
-            },
-          }),
-        ];
+              },
+            }),
+          ];
     return (
       <>
-        <Form.Item style={style} label={EmailText} name={emailField} validateTrigger={["onBlur", "onChange"]} rules={rules}>
+        <Form.Item
+          initialValue={email || undefined}
+          style={style}
+          label={EmailText}
+          name={emailField}
+          validateTrigger={["onBlur", "onChange"]}
+          rules={rules}
+        >
           <Input type="email" autoComplete="off" />
         </Form.Item>
         {!IsExistEmail && (

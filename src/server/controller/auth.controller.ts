@@ -1,4 +1,4 @@
-import { Controller, Get, Query, Request } from "@symph/server";
+import { Controller, Get, Request } from "@symph/server";
 import { AuthService } from "../service/auth.service";
 import { FastifyRequest } from "fastify";
 import { ControllerReturn, ReturnInterface } from "../../utils/common.interface";

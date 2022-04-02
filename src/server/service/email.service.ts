@@ -124,18 +124,18 @@ export class EmailService implements IComponentLifecycle {
     }
   }
 
-  public async addEmailCode(email: string, emailCode: string) {
+  private async addEmailCode(email: string, emailCode: string): Promise<void> {
     const emailCodeDB = new EmailCodeDB();
     emailCodeDB.email = email;
     emailCodeDB.emailCode = emailCode;
     await this.connection.manager.save(emailCodeDB);
   }
 
-  public async deleteEmailCode(email: string) {
+  public async deleteEmailCode(email: string): Promise<void> {
     await this.connection.manager.delete(EmailCodeDB, { email });
   }
 
-  public async getEmailCode(email: string): Promise<EmailCodeDB> {
+  private async getEmailCode(email: string): Promise<EmailCodeDB> {
     return await this.connection.manager.findOne(EmailCodeDB, { email });
   }
 }

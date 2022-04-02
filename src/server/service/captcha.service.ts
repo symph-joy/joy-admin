@@ -64,7 +64,7 @@ export class CaptchaService implements IComponentLifecycle {
     };
   }
 
-  public async addCaptcha(captchaId: string, captchaText: string) {
+  private async addCaptcha(captchaId: string, captchaText: string): Promise<void> {
     const captchaDb = new CaptchaDB();
     captchaDb.captcha = captchaText.toLowerCase();
     captchaDb.captchaId = captchaId;
@@ -75,7 +75,7 @@ export class CaptchaService implements IComponentLifecycle {
     return await this.connection.manager.findOne(CaptchaDB, { captchaId });
   }
 
-  public deleteCaptcha(captchaDB: CaptchaDB) {
+  private deleteCaptcha(captchaDB: CaptchaDB): void {
     this.connection.manager.delete(CaptchaDB, captchaDB);
   }
 }

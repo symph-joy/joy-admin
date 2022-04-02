@@ -21,6 +21,15 @@ export interface ChangeUserInterface {
   userId: string;
 }
 
+export interface UserByAdminInterface {
+  password?: string;
+  email?: string;
+  username?: string;
+  emailActive?: boolean;
+  roleId?: number;
+  userId?: string;
+}
+
 // 邮箱
 export interface EmailOption {
   host: string;

@@ -7,7 +7,7 @@ import { cancelText, okText } from "../../../utils/constUtils";
 export default class Modal extends BaseReactController {
   renderView(): ReactNode {
     return (
-      <AntdModal cancelText={cancelText} okText={okText} {...this.props}>
+      <AntdModal destroyOnClose cancelText={cancelText} okText={okText} {...this.props}>
         {this.props.children}
       </AntdModal>
     );

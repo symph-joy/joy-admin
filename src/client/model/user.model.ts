@@ -4,7 +4,7 @@ import { ReactFetchService } from "@symph/joy";
 import { SuccessCode } from "../../utils/constUtils";
 import { message } from "antd";
 import { UserDB } from "../../utils/entity/UserDB";
-import { ChangeUserInterface, ReturnInterface } from "../../utils/common.interface";
+import { ChangeUserInterface, ReturnInterface, UserByAdminInterface } from "../../utils/common.interface";
 
 @ReactModel()
 export class UserModel extends BaseReactModel<{
@@ -20,7 +20,7 @@ export class UserModel extends BaseReactModel<{
     };
   }
 
-  async getUser() {
+  async getUser(): Promise<void> {
     const resp = await this.joyFetchService.fetchApi("/getUser");
     const respJson = await resp.json();
     const res = respJson.data;
@@ -36,7 +36,7 @@ export class UserModel extends BaseReactModel<{
     }
   }
 
-  async getAllUser() {
+  async getAllUser(): Promise<ReturnInterface<UserDB[]>> {
     const resp = await this.joyFetchService.fetchApi("/getAllUser");
     const respJson = await resp.json();
     return respJson.data;
@@ -50,6 +50,24 @@ export class UserModel extends BaseReactModel<{
         ...values,
       }),
     });
+    const respJson = await resp.json();
+    return respJson.data;
+  }
+
+  async checkIsExistUsername(value: string): Promise<boolean> {
+    const resp = await this.joyFetchService.fetchApi(`/checkIsExistUsername?value=${value}`);
+    const respJson = await resp.json();
+    return respJson.data;
+  }
+
+  async addUserByAdmin(values: UserByAdminInterface): Promise<ReturnInterface<null>> {
+    const resp = await this.joyFetchService.fetchApi("/addUserByAdmin", { method: "POST", body: JSON.stringify(values) });
+    const respJson = await resp.json();
+    return respJson.data;
+  }
+
+  async editUserByAdmin(values: UserByAdminInterface): Promise<ReturnInterface<null>> {
+    const resp = await this.joyFetchService.fetchApi("/editUserByAdmin", { method: "POST", body: JSON.stringify(values) });
     const respJson = await resp.json();
     return respJson.data;
   }

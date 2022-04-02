@@ -13,5 +13,8 @@ export class UserDB extends BaseEntity {
   email: string;
 
   @Column()
+  emailActive: boolean;
+
+  @Column()
   roleId: number;
 }

@@ -32,7 +32,7 @@ export class DBService implements IComponentLifecycle {
     });
   }
 
-  private async addUser(connection) {
+  private async addUser(connection): Promise<void> {
     const res = await connection.manager.findOne(UserDB, { username: Admin });
     if (!res) {
       connection
@@ -41,6 +41,7 @@ export class DBService implements IComponentLifecycle {
           let realPassword = "123456";
           const userDB = new UserDB();
           userDB.email = email;
+          userDB.emailActive = false;
           userDB.username = Admin;
           userDB.roleId = RoleEnum.Admin;
           const user = await transactionalEntityManager.save(userDB);
@@ -70,7 +71,7 @@ export class DBService implements IComponentLifecycle {
     }
   }
 
-  private async addRole(connection, roleId: number, roleName: string) {
+  private async addRole(connection, roleId: number, roleName: string): Promise<void> {
     const res = await connection.manager.findOne(RoleDB, { roleId });
     if (!res) {
       const roleDB = new RoleDB();
