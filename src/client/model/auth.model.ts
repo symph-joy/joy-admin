@@ -15,21 +15,21 @@ export class AuthModel extends BaseReactModel<{}> {
   }
 
   async checkToken(): Promise<void> {
-    const resp = await this.joyFetchService.fetchApi("/checkToken");
-    const respJson = await resp.json();
-    const res = await respJson.data;
-    if (res.code === SuccessCode) {
-      if (!location.pathname.includes("menu")) {
-        location.href = "/menu";
-      }
-    } else {
-      if (location.pathname !== "/login") {
-        message.error(res.message);
-        setTimeout(() => {
-          location.href = "/login";
-        }, 1000);
-      }
-    }
+    // const resp = await this.joyFetchService.fetchApi("/checkToken");
+    // const respJson = await resp.json();
+    // const res = await respJson.data;
+    // if (res.code === SuccessCode) {
+    //   if (!location.pathname.includes("menu")) {
+    //     location.href = "/menu";
+    //   }
+    // } else {
+    //   if (location.pathname !== "/login") {
+    //     message.error(res.message);
+    //     setTimeout(() => {
+    //       location.href = "/login";
+    //     }, 1000);
+    //   }
+    // }
   }
 
   async deleteTokenByToken(): Promise<void> {

@@ -13,7 +13,7 @@ import {
 } from "../../utils/constUtils";
 import { passwordField, captchaField, captchaIdField, emailField, rememberPasswordField } from "../../utils/apiField";
 import { DBService } from "./db.service";
-import { ReturnInterface, TokenInterface, LoginUser, RoleEnum } from "../../utils/common.interface";
+import { ReturnInterface, LoginUser, RoleEnum } from "../../utils/common.interface";
 import { AuthService } from "./auth.service";
 import { CaptchaService } from "./captcha.service";
 import { AccountService } from "./account.service";
@@ -36,7 +36,7 @@ export class LoginService implements IComponentLifecycle {
   initialize() {}
 
   // 登录
-  public async login(values: LoginUser): Promise<ReturnInterface<TokenInterface>> {
+  public async login(values: LoginUser): Promise<ReturnInterface<string | number>> {
     // 验证码是否正确
     const captchaInput = values[captchaField];
     const captchaId = values[captchaIdField];
@@ -70,30 +70,19 @@ export class LoginService implements IComponentLifecycle {
         return {
           message: PasswordWrong,
           code: WrongCode,
+          data: accountDB.wrongTime + 1,
         };
       } else {
-        const user = await this.userService.getUserByOptions({ _id: accountDB.userId });
-        if (user?.roleId === RoleEnum.Admin) {
-          const token = this.authService.generateToken(accountDB.userId);
-          const rememberPassword = values[rememberPasswordField] ? true : false;
-          this.authService.addToken(user._id, token);
-          if (accountDB.wrongTime > 0) {
-            this.accountService.updateAccount(accountDB._id, { wrongTime: 0 });
-          }
-          return {
-            data: {
-              token,
-              rememberPassword,
-            },
-            message: LoginSuccess,
-            code: SuccessCode,
-          };
-        } else {
-          return {
-            message: CommonUser,
-            code: NoPermissionCode,
-          };
+        const changePasswordTimes = resPassword.data.changePasswordTimes;
+        const token = this.authService.generateToken(accountDB.userId, values[rememberPasswordField], changePasswordTimes);
+        if (accountDB.wrongTime > 0) {
+          this.accountService.updateAccount(accountDB._id, { wrongTime: 0 });
         }
+        return {
+          data: token,
+          message: LoginSuccess,
+          code: SuccessCode,
+        };
       }
     }
   }

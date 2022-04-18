@@ -15,7 +15,11 @@ module.exports = {
     username: "root",
     password: "root",
     database: "test",
-    synchronize: true
+    synchronize: true,
   },
   secret: "Symph-joy",
+  adminOptions: {
+    email: "admin123@123.com",
+    password: "123456",
+  },
 };

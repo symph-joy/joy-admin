@@ -62,7 +62,7 @@ export default class LoginController extends BaseReactController {
         this.props.navigate("/menu");
       }, 1000);
     } else {
-      this.getWrongTime();
+      this.handleWrongTime(res.data as number);
       message.error(res.message);
     }
   };
@@ -75,9 +75,7 @@ export default class LoginController extends BaseReactController {
     });
   };
 
-  getWrongTime = async () => {
-    const email = this.formRef.current.getFieldValue(emailField);
-    const wrongTime = await this.loginModel.getWrongTime(email);
+  handleWrongTime = async (wrongTime: number) => {
     if (wrongTime) {
       this.setState({
         wrongTime,
@@ -86,6 +84,12 @@ export default class LoginController extends BaseReactController {
         this.refreshCaptchaImg();
       }
     }
+  };
+
+  getWrongTime = async () => {
+    const email = this.formRef.current.getFieldValue(emailField);
+    const wrongTime = await this.loginModel.getWrongTime(email);
+    this.handleWrongTime(wrongTime);
   };
 
   handleBlur = async () => {

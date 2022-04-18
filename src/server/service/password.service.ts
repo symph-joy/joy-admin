@@ -64,10 +64,11 @@ export class PasswordService implements IComponentLifecycle {
     return bcrypt.hashSync(realPassword, salt);
   }
 
-  public async addPassword(realPassword: string, userId: ObjectID, transactionalEntityManager): Promise<PasswordDB> {
+  public async addPassword(realPassword: string, userId: ObjectID, transactionalEntityManager, changePasswordTimes: number): Promise<PasswordDB> {
     const passwordDB = new PasswordDB();
     passwordDB.password = this.encrypt(realPassword);
     passwordDB.userId = userId;
+    passwordDB.changePasswordTimes = changePasswordTimes;
     return await transactionalEntityManager.save(passwordDB);
   }
 

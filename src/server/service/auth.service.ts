@@ -5,8 +5,6 @@ import { ObjectID } from "typeorm";
 import { Payload, ReturnInterface } from "../../utils/common.interface";
 import { CheckSuccess, DeleteFail, DeleteSuccess, ExpiredUser, SuccessCode, WrongCode, WrongToken } from "../../utils/constUtils";
 import { DBService } from "./db.service";
-import { TokenDB } from "../../utils/entity/TokenDB";
-import { ObjectId } from "mongodb";
 
 @Component()
 export class AuthService implements IComponentLifecycle {
@@ -19,14 +17,18 @@ export class AuthService implements IComponentLifecycle {
 
   initialize() {}
 
-  public generateToken(userId: ObjectID): string {
+  public generateToken(userId: ObjectID, rememberPassword: boolean, changePasswordTimes: number): string {
     const created = Math.floor(Date.now() / 1000);
     // Token 数据
     const payload = {
       userId,
-      exp: created + 60 * 60 * 24 * 7, // 一周
+      exp: created + 60 * 60 * 1, // 默认1h
       iat: created,
+      changePasswordTimes,
     };
+    if (rememberPassword) {
+      payload.exp = created + 60 * 60 * 24 * 7;
+    }
     // 密钥
     const secret = this.secret;
     // 签发 Token
@@ -49,75 +51,31 @@ export class AuthService implements IComponentLifecycle {
           };
         }
       } else {
-        const tokenDB = await this.getToken({ token });
-        if (tokenDB) {
-          const date = new Date();
-          const expiration = new Date(date.getDate() - 7);
-          if (tokenDB.createdDate < expiration) {
-            this.deleteToken(tokenDB);
-            return {
-              message: WrongToken,
-              code: WrongCode,
-            };
-          }
-          return {
-            message: CheckSuccess,
-            code: SuccessCode,
-            data: decoded,
-          };
-        } else {
-          return {
-            message: WrongToken,
-            code: WrongCode,
-          };
-        }
+        console.log("decoded:", decoded);
+        // const tokenDB = await this.getToken({ token });
+        // if (tokenDB) {
+        //   const date = new Date();
+        //   const expiration = new Date(date.getDate() - 7);
+        //   if (tokenDB.createdDate < expiration) {
+        //     this.deleteToken(tokenDB);
+        //     return {
+        //       message: WrongToken,
+        //       code: WrongCode,
+        //     };
+        //   }
+        //   return {
+        //     message: CheckSuccess,
+        //     code: SuccessCode,
+        //     data: decoded,
+        //   };
+        // } else {
+        //   return {
+        //     message: WrongToken,
+        //     code: WrongCode,
+        //   };
+        // }
       }
     });
     return res as unknown as ReturnInterface<Payload>;
-  }
-
-  public async addToken(userId: ObjectID, token: string): Promise<void> {
-    const tokenDB = new TokenDB();
-    tokenDB.token = token;
-    tokenDB.userId = userId;
-    await this.connection.manager.save(tokenDB);
-  }
-
-  private deleteToken(tokenDB: TokenDB): void {
-    this.connection.manager.delete(TokenDB, tokenDB);
-  }
-
-  public async deleteTokenByToken(token: string): Promise<ReturnInterface<null>> {
-    const res = await this.connection.manager.delete(TokenDB, { token });
-    if (res.affected === 1) {
-      return {
-        code: SuccessCode,
-        message: DeleteSuccess,
-      };
-    } else {
-      return {
-        code: WrongCode,
-        message: DeleteFail,
-      };
-    }
-  }
-
-  public async deleteTokenAll(userId: string): Promise<ReturnInterface<null>> {
-    const res = await this.connection.manager.delete(TokenDB, { userId: new ObjectId(userId) });
-    if (res.affected !== 0) {
-      return {
-        code: SuccessCode,
-        message: DeleteSuccess,
-      };
-    } else {
-      return {
-        code: WrongCode,
-        message: DeleteFail,
-      };
-    }
-  }
-
-  private async getToken(options: object): Promise<TokenDB> {
-    return await this.connection.manager.findOne(TokenDB, options);
   }
 }

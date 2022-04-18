@@ -37,8 +37,8 @@ export class UserService implements IComponentLifecycle {
 
   initialize() {}
 
-  // 新增用户
-  public async addUser(values: RegisterUser): Promise<ReturnInterface<null>> {
+  // 注册用户
+  public async addUserByRegister(values: RegisterUser): Promise<ReturnInterface<null>> {
     const email = values[emailField];
     const emailCode = values[emailCodeField];
     // 邮箱和激活码是否匹配
@@ -48,30 +48,21 @@ export class UserService implements IComponentLifecycle {
     }
     const password = values[passwordField];
     const username = uuidv1();
-    return this.connection
-      .transaction(async (transactionalEntityManager) => {
-        const user = await this.addUserToDB(username, email, 2, true, transactionalEntityManager);
-        await this.passwordService.addPassword(password, user._id, transactionalEntityManager);
-        await this.accountService.addAccount(email, user._id, transactionalEntityManager);
-        await this.accountService.addAccount(username, user._id, transactionalEntityManager);
-      })
-      .then(() => {
-        this.emailService.deleteEmailCode(email);
-        return {
-          code: SuccessCode,
-          message: UserAddSuccess,
-        };
-      })
-      .catch((e) => {
-        console.log(e);
-        return {
-          code: WrongCode,
-          message: UserAddFail,
-        };
-      });
+    const params = {
+      username,
+      email,
+      [roleField]: RoleEnum.Common,
+      [emailActiveField]: true,
+      password,
+    };
+    const addRes = await this.addUser(params);
+    if (addRes.code === SuccessCode) {
+      this.emailService.deleteEmailCode(email);
+    }
+    return addRes;
   }
 
-  public addUserByAdmin(values: UserByAdminInterface): ReturnInterface<null> {
+  public addUser(values: UserByAdminInterface): ReturnInterface<null> {
     const username = values[usernameField];
     const email = values[emailField];
     const roleId = values[roleField];
@@ -80,7 +71,7 @@ export class UserService implements IComponentLifecycle {
     return this.connection
       .transaction(async (transactionalEntityManager) => {
         const user = await this.addUserToDB(username, email, roleId, emailActive, transactionalEntityManager);
-        await this.passwordService.addPassword(password, user._id, transactionalEntityManager);
+        await this.passwordService.addPassword(password, user._id, transactionalEntityManager, 0);
         await this.accountService.addAccount(email, user._id, transactionalEntityManager);
         await this.accountService.addAccount(username, user._id, transactionalEntityManager);
       })

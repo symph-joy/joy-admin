@@ -79,10 +79,10 @@ export class UserController {
     };
   }
 
-  @Post("/addUserByAdmin")
-  addUserByAdmin(@Body() values: string): ControllerReturn<null> {
+  @Post("/addUser")
+  addUser(@Body() values: string): ControllerReturn<null> {
     return {
-      data: this.userService.addUserByAdmin(JSON.parse(values)),
+      data: this.userService.addUser(JSON.parse(values)),
     };
   }
 }

@@ -83,6 +83,12 @@ export default class Email extends BaseReactController {
     }
   };
 
+  handleKeyUp = (e) => {
+    if (e.keyCode === 13) {
+      this.handleOk();
+    }
+  };
+
   handleOk = async () => {
     const captcha = this.formRef.current.getFieldValue(captchaField);
     if (captcha) {
@@ -279,7 +285,7 @@ export default class Email extends BaseReactController {
         )}
         <Modal okText={okText} cancelText={cancelText} title={noCaptcha} visible={showModal} onOk={this.handleOk} onCancel={this.handleCancel}>
           <Form.Item label={CaptchaText} name={captchaField} rules={[{ required: true, message: noCaptcha }]}>
-            <Input autoComplete="off" />
+            <Input autoComplete="off" onKeyUp={this.handleKeyUp} />
           </Form.Item>
           <div onClick={this.refreshCaptchaImg} dangerouslySetInnerHTML={{ __html: captchaImg }}></div>
         </Modal>

@@ -30,7 +30,7 @@ export default class HeaderRight extends BaseReactController {
     const date = new Date();
     const min = date.getMinutes();
     date.setMinutes(min - 5);
-    await this.authModel.deleteTokenByToken();
+    // await this.authModel.deleteTokenByToken();
     document.cookie = `token=;expires=${date}`;
     this.props.navigate("/login");
   };

@@ -2,7 +2,7 @@ import { ReactModel, BaseReactModel } from "@symph/react";
 import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
 import { PasswordModel } from "./password.model";
-import { ReturnInterface, TokenInterface, LoginUser } from "../../utils/common.interface";
+import { ReturnInterface, LoginUser } from "../../utils/common.interface";
 import { passwordField } from "../../utils/apiField";
 @ReactModel()
 export class LoginModel extends BaseReactModel<{}> {
@@ -14,7 +14,7 @@ export class LoginModel extends BaseReactModel<{}> {
     return {};
   }
 
-  async login(values: LoginUser): Promise<ReturnInterface<TokenInterface>> {
+  async login(values: LoginUser): Promise<ReturnInterface<string | number>> {
     values[passwordField] = this.passwordModel.encryptByMD5(values[passwordField]);
     const resp = await this.joyFetchService.fetchApi("/login", { method: "POST", body: JSON.stringify(values) });
     const respJson = await resp.json();

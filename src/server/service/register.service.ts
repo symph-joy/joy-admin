@@ -11,7 +11,7 @@ export class RegisterService implements IComponentLifecycle {
 
   // 注册
   public async register(values: RegisterUser): Promise<ReturnInterface<null>> {
-    const res = await this.userService.addUser(values);
+    const res = await this.userService.addUserByRegister(values);
     if (res.code === SuccessCode) {
       return {
         ...res,

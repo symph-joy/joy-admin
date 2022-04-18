@@ -11,6 +11,13 @@ export class RoleService implements IComponentLifecycle {
 
   initialize() {}
 
+  public async addRole(roleName: string, roleId: number): Promise<RoleDB> {
+    const roleDB = new RoleDB();
+    roleDB.roleName = roleName;
+    roleDB.roleId = roleId;
+    return await this.connection.manager.save(roleDB);
+  }
+
   public async getRoles(): Promise<ReturnInterface<RoleDB[]>> {
     const roles = await this.getRolesByDB();
     if (roles) {
@@ -29,5 +36,9 @@ export class RoleService implements IComponentLifecycle {
 
   public async getRolesByDB(): Promise<RoleDB[]> {
     return await this.connection.manager.find(RoleDB);
+  }
+
+  public async getRoleByOptions(options: object): Promise<RoleDB> {
+    return await this.connection.manager.findOne(RoleDB, options);
   }
 }

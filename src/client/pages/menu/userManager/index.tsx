@@ -76,7 +76,7 @@ export default class UserManager extends BaseReactController {
     if (title === AddUser) {
       const values = this.addUserFormRef.current.getFieldsValue();
       values[passwordField] = this.passwordModel.encryptByMD5(values[passwordField]);
-      res = await this.userModel.addUserByAdmin(values);
+      res = await this.userModel.addUser(values);
     } else {
       const { username, email, emailActive, roleId } = this.addUserFormRef.current.getFieldsValue();
       const { item } = this.state;

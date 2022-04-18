@@ -10,4 +10,7 @@ export class PasswordDB extends BaseEntity {
 
   @Column()
   password: string;
+
+  @Column()
+  changePasswordTimes: number;
 }

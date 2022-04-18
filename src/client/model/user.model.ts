@@ -60,8 +60,8 @@ export class UserModel extends BaseReactModel<{
     return respJson.data;
   }
 
-  async addUserByAdmin(values: UserByAdminInterface): Promise<ReturnInterface<null>> {
-    const resp = await this.joyFetchService.fetchApi("/addUserByAdmin", { method: "POST", body: JSON.stringify(values) });
+  async addUser(values: UserByAdminInterface): Promise<ReturnInterface<null>> {
+    const resp = await this.joyFetchService.fetchApi("/addUser", { method: "POST", body: JSON.stringify(values) });
     const respJson = await resp.json();
     return respJson.data;
   }

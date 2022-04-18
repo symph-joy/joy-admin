@@ -66,12 +66,6 @@ export interface Captcha {
   captchaId: string;
 }
 
-// token
-export interface TokenInterface {
-  token: string;
-  rememberPassword: boolean;
-}
-
 export interface Payload {
   userId: string;
   exp: number;

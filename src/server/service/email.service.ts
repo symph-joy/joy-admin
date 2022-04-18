@@ -93,7 +93,7 @@ export class EmailService implements IComponentLifecycle {
     await this.addEmailCode(email, emailCode);
   }
 
-  // 验证邮箱和激活码是否匹配
+  // 验证邮箱和激活码是否匹配，包括过期时间
   public async checkEmailCodeIsRight(email: string, emailCode: string): Promise<ReturnInterface<null>> {
     const emailCodeDB = await this.getEmailCode(email);
     if (!emailCodeDB) {
