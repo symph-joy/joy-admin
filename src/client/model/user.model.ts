@@ -1,10 +1,10 @@
 import { ReactModel, BaseReactModel } from "@symph/react";
 import { Inject } from "@symph/core";
 import { ReactFetchService } from "@symph/joy";
-import { SuccessCode } from "../../utils/constUtils";
-import { message } from "antd";
 import { UserDB } from "../../utils/entity/UserDB";
 import { ChangeUserInterface, ReturnInterface, UserByAdminInterface } from "../../utils/common.interface";
+import { SuccessCode } from "../../utils/constUtils";
+import { message } from "antd";
 
 @ReactModel()
 export class UserModel extends BaseReactModel<{
@@ -21,7 +21,8 @@ export class UserModel extends BaseReactModel<{
   }
 
   async getUser(): Promise<void> {
-    const resp = await this.joyFetchService.fetchApi("/getUser");
+    const token = localStorage.getItem("token");
+    const resp = await this.joyFetchService.fetchApi("/getUser?token=" + token);
     const respJson = await resp.json();
     const res = respJson.data;
     if (res.code === SuccessCode) {
@@ -30,6 +31,7 @@ export class UserModel extends BaseReactModel<{
       });
     } else {
       message.error(res.message);
+      localStorage.removeItem("token");
       setTimeout(() => {
         location.href = "/login";
       }, 1000);
@@ -42,16 +44,26 @@ export class UserModel extends BaseReactModel<{
     return respJson.data;
   }
 
-  async updateUserMessage(values: ChangeUserInterface): Promise<ReturnInterface<null>> {
+  async updateUserMessage(values: ChangeUserInterface): Promise<void> {
+    const token = localStorage.getItem("token");
     const resp = await this.joyFetchService.fetchApi("/updateUserMessage", {
       method: "POST",
       body: JSON.stringify({
         userId: this.state.user?._id,
         ...values,
+        token,
       }),
     });
     const respJson = await resp.json();
-    return respJson.data;
+    const res = respJson.data;
+    if (res.code !== SuccessCode) {
+      message.error(res.message);
+    } else {
+      this.setState({
+        user: res.data,
+      });
+      message.success(res.message);
+    }
   }
 
   async checkIsExistUsername(value: string): Promise<boolean> {
@@ -70,5 +82,11 @@ export class UserModel extends BaseReactModel<{
     const resp = await this.joyFetchService.fetchApi("/editUserByAdmin", { method: "POST", body: JSON.stringify(values) });
     const respJson = await resp.json();
     return respJson.data;
+  }
+
+  async setUser(user: UserDB) {
+    this.setState({
+      user,
+    });
   }
 }

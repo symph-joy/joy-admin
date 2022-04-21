@@ -8,12 +8,10 @@ import {
   NotExistUsernameOrEmail,
   PasswordWrong,
   LoginSuccess,
-  NoPermissionCode,
-  CommonUser,
 } from "../../utils/constUtils";
 import { passwordField, captchaField, captchaIdField, emailField, rememberPasswordField } from "../../utils/apiField";
 import { DBService } from "./db.service";
-import { ReturnInterface, LoginUser, RoleEnum } from "../../utils/common.interface";
+import { ReturnInterface, LoginUser } from "../../utils/common.interface";
 import { AuthService } from "./auth.service";
 import { CaptchaService } from "./captcha.service";
 import { AccountService } from "./account.service";
@@ -73,7 +71,7 @@ export class LoginService implements IComponentLifecycle {
           data: accountDB.wrongTime + 1,
         };
       } else {
-        const changePasswordTimes = resPassword.data.changePasswordTimes;
+        const changePasswordTimes = (await this.userService.getUser(String(accountDB.userId))).data.changePasswordTimes;
         const token = this.authService.generateToken(accountDB.userId, values[rememberPasswordField], changePasswordTimes);
         if (accountDB.wrongTime > 0) {
           this.accountService.updateAccount(accountDB._id, { wrongTime: 0 });

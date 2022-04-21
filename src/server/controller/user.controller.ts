@@ -1,7 +1,6 @@
-import { Body, Controller, Get, Post, Query, Request } from "@symph/server";
+import { Body, Controller, Get, Post, Query } from "@symph/server";
 import { AuthService } from "../service/auth.service";
 import { UserService } from "../service/user.service";
-import { FastifyRequest } from "fastify";
 import { ControllerReturn, ReturnInterface } from "../../utils/common.interface";
 import { PasswordService } from "../service/password.service";
 import { UserDB } from "../../utils/entity/UserDB";
@@ -12,23 +11,14 @@ export class UserController {
   constructor(private authService: AuthService, private userService: UserService, private passwordService: PasswordService) {}
 
   @Get("/getUser")
-  async getUser(@Request() req: FastifyRequest): Promise<ControllerReturn<UserDB>> {
-    const token = req.cookies.token;
-    const res = await this.authService.checkToken(token);
-    if (res.code === SuccessCode) {
-      return {
-        data: await this.userService.getUser(res.data.userId),
-      };
-    } else {
-      return {
-        data: res as ReturnInterface<null>,
-      };
-    }
+  async getUser(@Query("token") token: string): Promise<ControllerReturn<UserDB>> {
+    return {
+      data: await this.authService.checkToken(token),
+    };
   }
 
   @Get("/getAllUser")
-  async getAllUser(@Request() req: FastifyRequest): Promise<ControllerReturn<UserDB[]>> {
-    const token = req.cookies.token;
+  async getAllUser(@Query("token") token: string): Promise<ControllerReturn<UserDB[]>> {
     const res = await this.authService.checkToken(token);
     if (res.code === SuccessCode) {
       return {
@@ -42,12 +32,12 @@ export class UserController {
   }
 
   @Post("/updateUserMessage")
-  async updateUserMessage(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn<null>> {
-    const token = req.cookies.token;
-    const res = await this.authService.checkToken(token);
+  async updateUserMessage(@Body() values: string): Promise<ControllerReturn<null>> {
+    const params = JSON.parse(values);
+    const res = await this.authService.checkToken(params.token);
     if (res.code === SuccessCode) {
       return {
-        data: await this.userService.updateUserMessage(JSON.parse(values)),
+        data: await this.userService.updateUserMessage(params, res.data),
       };
     } else {
       return {
@@ -57,9 +47,9 @@ export class UserController {
   }
 
   @Post("/changePassword")
-  async changePassword(@Request() req: FastifyRequest, @Body() values: string): Promise<ControllerReturn<null>> {
+  async changePassword(@Query("token") token: string, @Body() values: string): Promise<ControllerReturn<null>> {
     const { oldPassword, newPassword, userId } = JSON.parse(values);
-    const token = req.cookies.token;
+    // const token = req.cookies.token;
     const res = await this.authService.checkToken(token);
     if (res.code === SuccessCode) {
       return {

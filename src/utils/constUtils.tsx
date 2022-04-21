@@ -71,7 +71,6 @@ export const ChangeEmail = "修改邮箱";
 export const Logout = "退出登录";
 export const Admin = "超级管理员";
 export const Common = "普通角色";
-export const CommonUser = "您是普通用户，暂无权限";
 export const NoPermissionCode = 10004;
 export const PasswordNotChange = "密码未更改";
 export const UserManagerText = "用户管理";

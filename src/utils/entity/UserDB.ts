@@ -17,4 +17,7 @@ export class UserDB extends BaseEntity {
 
   @Column()
   roleId: number;
+
+  @Column()
+  changePasswordTimes: number;
 }

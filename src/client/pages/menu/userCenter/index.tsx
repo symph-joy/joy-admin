@@ -1,7 +1,6 @@
 import React, { ReactNode, RefObject } from "react";
 import { BaseReactController, ReactController } from "@symph/react";
 import { Inject } from "@symph/core";
-import { AuthModel } from "../../../model/auth.model";
 import { UserModel } from "../../../model/user.model";
 import { confirmPasswordField, emailField, newPasswordField, oldPasswordField, usernameField } from "../../../../utils/apiField";
 import { Button, Form, FormInstance, Input, message, Tabs } from "antd";
@@ -29,9 +28,6 @@ import { ChangeUserInterface } from "../../../../utils/common.interface";
 const { TabPane } = Tabs;
 @ReactController()
 export default class UserCenter extends BaseReactController {
-  @Inject()
-  authModel: AuthModel;
-
   @Inject()
   userModel: UserModel;
 
@@ -69,13 +65,7 @@ export default class UserCenter extends BaseReactController {
       if (email === oldEmail) {
         values[emailField] = undefined;
       }
-      const res = await this.userModel.updateUserMessage(values);
-      if (res.code !== SuccessCode) {
-        message.error(res.message);
-      } else {
-        message.success(res.message);
-        location.reload();
-      }
+      await this.userModel.updateUserMessage(values);
     }
   };
 
@@ -87,11 +77,6 @@ export default class UserCenter extends BaseReactController {
       if (res.code === SuccessCode) {
         message.success(res.message);
         setTimeout(async () => {
-          const date = new Date();
-          const min = date.getMinutes();
-          date.setMinutes(min - 5);
-          await this.authModel.deleteTokenAll();
-          document.cookie = `token=;expires=${date}`;
           this.props.navigate("/login");
         }, 1000);
       } else {

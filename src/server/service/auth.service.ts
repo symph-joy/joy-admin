@@ -3,12 +3,15 @@ import jwt from "jsonwebtoken";
 import { Value } from "@symph/config";
 import { ObjectID } from "typeorm";
 import { Payload, ReturnInterface } from "../../utils/common.interface";
-import { CheckSuccess, DeleteFail, DeleteSuccess, ExpiredUser, SuccessCode, WrongCode, WrongToken } from "../../utils/constUtils";
+import { CheckSuccess, ExpiredUser, SuccessCode, WrongCode, WrongToken } from "../../utils/constUtils";
 import { DBService } from "./db.service";
+import { UserService } from "./user.service";
+import { ObjectId } from "mongodb";
+import { UserDB } from "../../utils/entity/UserDB";
 
 @Component()
 export class AuthService implements IComponentLifecycle {
-  constructor(private dbService: DBService) {}
+  constructor(private dbService: DBService, private userService: UserService) {}
 
   public connection = this.dbService.connection;
 
@@ -36,8 +39,8 @@ export class AuthService implements IComponentLifecycle {
     return token;
   }
 
-  public async checkToken(token: string): Promise<ReturnInterface<Payload>> {
-    const res = jwt.verify(token, this.secret, async (err, decoded) => {
+  public async checkToken(token: string): Promise<ReturnInterface<UserDB>> {
+    const res = jwt.verify(token, this.secret, async (err, decoded: Payload) => {
       if (err) {
         if (err.name === "TokenExpiredError") {
           return {
@@ -51,31 +54,25 @@ export class AuthService implements IComponentLifecycle {
           };
         }
       } else {
-        console.log("decoded:", decoded);
-        // const tokenDB = await this.getToken({ token });
-        // if (tokenDB) {
-        //   const date = new Date();
-        //   const expiration = new Date(date.getDate() - 7);
-        //   if (tokenDB.createdDate < expiration) {
-        //     this.deleteToken(tokenDB);
-        //     return {
-        //       message: WrongToken,
-        //       code: WrongCode,
-        //     };
-        //   }
-        //   return {
-        //     message: CheckSuccess,
-        //     code: SuccessCode,
-        //     data: decoded,
-        //   };
-        // } else {
-        //   return {
-        //     message: WrongToken,
-        //     code: WrongCode,
-        //   };
-        // }
+        const user = await this.userService.getUserByOptions({ _id: new ObjectId(decoded.userId) });
+        if (user) {
+          if (user.changePasswordTimes === decoded.changePasswordTimes) {
+            const date = Math.floor(Date.now() / 1000);
+            if (date < decoded.exp) {
+              return {
+                message: CheckSuccess,
+                code: SuccessCode,
+                data: user,
+              };
+            }
+          }
+        }
+        return {
+          message: WrongToken,
+          code: WrongCode,
+        };
       }
     });
-    return res as unknown as ReturnInterface<Payload>;
+    return res as unknown as ReturnInterface<UserDB>;
   }
 }

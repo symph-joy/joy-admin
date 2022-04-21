@@ -7,12 +7,9 @@ import {
   SuccessCode,
   UpdateFail,
   UpdateSuccess,
-  UserNoExist,
   WrongCode,
   UserAddFail,
   UserAddSuccess,
-  NoPermissionCode,
-  CommonUser,
   UsernameExist,
 } from "../../utils/constUtils";
 import { UserDB } from "../../utils/entity/UserDB";
@@ -70,8 +67,8 @@ export class UserService implements IComponentLifecycle {
     const password = values[passwordField];
     return this.connection
       .transaction(async (transactionalEntityManager) => {
-        const user = await this.addUserToDB(username, email, roleId, emailActive, transactionalEntityManager);
-        await this.passwordService.addPassword(password, user._id, transactionalEntityManager, 0);
+        const user = await this.addUserToDB(username, email, roleId, emailActive, 0, transactionalEntityManager);
+        await this.passwordService.addPassword(password, user._id, transactionalEntityManager);
         await this.accountService.addAccount(email, user._id, transactionalEntityManager);
         await this.accountService.addAccount(username, user._id, transactionalEntityManager);
       })
@@ -91,75 +88,70 @@ export class UserService implements IComponentLifecycle {
   }
 
   // 修改用户
-  public async updateUserMessage(values: ChangeUserInterface): Promise<ReturnInterface<null>> {
+  public async updateUserMessage(values: ChangeUserInterface, originUser: UserDB): Promise<ReturnInterface<null>> {
     const { userId } = values;
     const _id = new ObjectId(userId) as unknown as ObjectID;
-    const hasUser = await this.getUserByOptions({ _id });
-    if (hasUser) {
-      const originEmail = hasUser[emailField];
-      const originUsername = hasUser[usernameField];
-      const params = {};
-      const email = values[emailField];
-      const username = values[usernameField];
-      if (email && !username) {
-        const emailCode = values[emailCodeField];
-        // 邮箱和激活码是否匹配
-        const res = await this.emailService.checkEmailCodeIsRight(email, emailCode);
-        if (res.code !== SuccessCode) {
-          return res;
-        }
-        params[emailField] = email;
+    const originEmail = originUser[emailField];
+    const originUsername = originUser[usernameField];
+    const params = {};
+    const email = values[emailField];
+    const username = values[usernameField];
+    if (email) {
+      const emailCode = values[emailCodeField];
+      // 邮箱和激活码是否匹配
+      const res = await this.emailService.checkEmailCodeIsRight(email, emailCode);
+      if (res.code !== SuccessCode) {
+        return res;
       }
-      if (username) {
-        if ((await this.getAllColumn("username")).includes(username)) {
+      params[emailField] = email;
+      params[emailActiveField] = true;
+    }
+    if (username) {
+      if ((await this.getAllColumn("username")).includes(username)) {
+        return {
+          code: WrongCode,
+          message: UsernameExist,
+        };
+      }
+      params[usernameField] = username;
+    }
+    return this.connection
+      .transaction(async (transactionalEntityManager) => {
+        const res = await this.updateUser(_id, { ...params }, transactionalEntityManager);
+        const res1 = [];
+        if (email) {
+          res1.push(await this.accountService.updateAccountByAccount(originEmail, { account: email }, transactionalEntityManager));
+        }
+        if (username) {
+          res1.push(await this.accountService.updateAccountByAccount(originUsername, { account: username }, transactionalEntityManager));
+        }
+        return [res, res1];
+      })
+      .then(async (res) => {
+        if (email) {
+          this.emailService.deleteEmailCode(email);
+        }
+        if (res[0].affected !== 0 && res[1][0]?.affected !== 0 && res[1][1]?.affected !== 0) {
           return {
-            code: WrongCode,
-            message: UsernameExist,
+            code: SuccessCode,
+            message: UpdateSuccess,
+            data: await this.getUserByOptions({ _id }),
           };
-        }
-        params[usernameField] = username;
-      }
-      return this.connection
-        .transaction(async (transactionalEntityManager) => {
-          const res = await this.updateUser(_id, { ...params }, transactionalEntityManager);
-          const res1 = [];
-          if (email) {
-            res1.push(await this.accountService.updateAccountByAccount(originEmail, { account: email }, transactionalEntityManager));
-          }
-          if (username) {
-            res1.push(await this.accountService.updateAccountByAccount(originUsername, { account: username }, transactionalEntityManager));
-          }
-          return [res, res1];
-        })
-        .then((res) => {
-          if (email) {
-            this.emailService.deleteEmailCode(email);
-          }
-          if (res[0].affected !== 0 && res[1][0]?.affected !== 0 && res[1][1]?.affected !== 0) {
-            return {
-              code: SuccessCode,
-              message: UpdateSuccess,
-            };
-          } else {
-            return {
-              code: WrongCode,
-              message: UpdateFail,
-            };
-          }
-        })
-        .catch((e) => {
-          console.log(e);
+        } else {
+          console.log(res);
           return {
             code: WrongCode,
             message: UpdateFail,
           };
-        });
-    } else {
-      return {
-        message: UserNoExist,
-        code: WrongCode,
-      };
-    }
+        }
+      })
+      .catch((e) => {
+        console.log(e);
+        return {
+          code: WrongCode,
+          message: UpdateFail,
+        };
+      });
   }
 
   public async checkIsExistUsername(username: string): Promise<boolean> {
@@ -170,18 +162,11 @@ export class UserService implements IComponentLifecycle {
   public async getUser(userId: string): Promise<ReturnInterface<UserDB>> {
     const user = await this.getUserByOptions({ _id: new ObjectId(userId) });
     if (user) {
-      if (user.roleId === RoleEnum.Common) {
-        return {
-          message: CommonUser,
-          code: NoPermissionCode,
-        };
-      } else {
-        return {
-          message: GetSuccess,
-          code: SuccessCode,
-          data: user,
-        };
-      }
+      return {
+        message: GetSuccess,
+        code: SuccessCode,
+        data: user,
+      };
     } else {
       return {
         message: NotExistUser,
@@ -206,12 +191,20 @@ export class UserService implements IComponentLifecycle {
     }
   }
 
-  private async addUserToDB(username: string, email: string, roleId: number, emailActive: boolean, transactionalEntityManager): Promise<UserDB> {
+  private async addUserToDB(
+    username: string,
+    email: string,
+    roleId: number,
+    emailActive: boolean,
+    changePasswordTimes: number,
+    transactionalEntityManager
+  ): Promise<UserDB> {
     const user = new UserDB();
     user.username = username;
     user.email = email;
     user.roleId = roleId;
     user.emailActive = emailActive;
+    user.changePasswordTimes = changePasswordTimes;
     return await transactionalEntityManager.save(user);
   }
 

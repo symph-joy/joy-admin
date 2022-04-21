@@ -7,7 +7,7 @@ export function authToken() {
   return (target: any, methodName: string, desc: any) => {
     const oMethod = desc.value;
     desc.value = async function (req: FastifyRequest, ...args): Promise<ControllerReturn<UserDB>> {
-      const token = req.cookies.token;
+      const token = ''
       const res = await this.authService.checkToken(token);
       if (res.code === SuccessCode) {
         return {

@@ -70,6 +70,7 @@ export interface Payload {
   userId: string;
   exp: number;
   iat: number;
+  changePasswordTimes: number;
 }
 
 // 公用

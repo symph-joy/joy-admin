@@ -22,7 +22,6 @@ import { LoginModel } from "../../model/login.model";
 import { CaptchaModel } from "../../model/captcha.model";
 import { passwordField, captchaField, rememberPasswordField, emailField } from "../../../utils/apiField";
 import { LoginUser } from "../../../utils/common.interface";
-import { AuthModel } from "../../model/auth.model";
 
 @ReactController()
 export default class LoginController extends BaseReactController {
@@ -32,32 +31,40 @@ export default class LoginController extends BaseReactController {
   @Inject()
   public captchaModel: CaptchaModel;
 
-  @Inject()
-  public authModel: AuthModel;
-
   state = {
     captchaImg: "",
     captchaId: "",
     wrongTime: 0,
+    getTimes: 0,
   };
 
   formRef: RefObject<FormInstance> = React.createRef();
 
-  componentDidMount() {
-    this.authModel.checkToken();
+  async componentDidMount() {
+    const token = localStorage.getItem("token");
+    if (token) {
+      location.href = "/menu";
+    }
   }
 
   onFinish = async (values: LoginUser) => {
+    if (this.state.getTimes === 0) {
+      await this.getWrongTime();
+    }
     if (this.state.wrongTime > 4) {
       const { captchaId } = this.state;
       values = {
         ...values,
         captchaId,
       };
+      if (!values[captchaField]) {
+        return false;
+      }
     }
     const res = await this.loginModel.login(values);
     if (res.code === SuccessCode) {
       message.success(res.message);
+      localStorage.setItem("token", res.data as string);
       setTimeout(() => {
         this.props.navigate("/menu");
       }, 1000);
@@ -79,6 +86,7 @@ export default class LoginController extends BaseReactController {
     if (wrongTime) {
       this.setState({
         wrongTime,
+        getTimes: 1,
       });
       if (wrongTime > 4) {
         this.refreshCaptchaImg();
@@ -93,7 +101,9 @@ export default class LoginController extends BaseReactController {
   };
 
   handleBlur = async () => {
-    this.getWrongTime();
+    if (this.state.getTimes === 0) {
+      this.getWrongTime();
+    }
   };
 
   renderView(): ReactNode {
