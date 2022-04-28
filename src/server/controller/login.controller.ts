@@ -18,7 +18,7 @@ export class DocsController {
   async getWrongTime(@Query("email") email: string): Promise<{ data: number }> {
     const res = await this.accountService.getAccountByOptions({ account: email });
     return {
-      data: res.wrongTime,
+      data: res?.wrongTime,
     };
   }
 }

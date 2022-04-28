@@ -56,7 +56,7 @@ export class LoginService implements IComponentLifecycle {
     // 账户是否存在
     const account = values[emailField];
     const accountDB = await this.accountService.getAccountByOptions({ account });
-    if (!account) {
+    if (!accountDB) {
       return {
         message: NotExistUsernameOrEmail,
         code: NotExistCode,
