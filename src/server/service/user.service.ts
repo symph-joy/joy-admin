@@ -34,7 +34,7 @@ export class UserService implements IComponentLifecycle {
 
   initialize() {}
 
-  // 注册用户
+  // 注册用户（暂时没有开放前端注册入口）
   public async addUserByRegister(values: RegisterUser): Promise<ReturnInterface<null>> {
     const email = values[emailField];
     const emailCode = values[emailCodeField];

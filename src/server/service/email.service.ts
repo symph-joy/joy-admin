@@ -1,7 +1,7 @@
 import { Component, IComponentLifecycle } from "@symph/core";
 import { Value } from "@symph/config";
 import nodemailer from "nodemailer";
-import { ReturnInterface, EmailOption, MailOptions } from "../../utils/common.interface";
+import type { ReturnInterface, EmailOption, MailOptions } from "../../utils/common.interface";
 import {
   EmailCodeText,
   SendSuccess,

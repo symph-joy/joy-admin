@@ -12,8 +12,6 @@ module.exports = {
     type: "mongodb",
     host: "localhost",
     port: 27017,
-    username: "root",
-    password: "root",
     database: "test",
     synchronize: true,
   },
