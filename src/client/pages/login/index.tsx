@@ -15,7 +15,6 @@ import {
   RememberPassword,
   SuccessCode,
   EmailText,
-  noEmail,
   InputEmailOrUsername,
 } from "../../../utils/constUtils";
 import { LoginModel } from "../../model/login.model";
@@ -35,7 +34,7 @@ export default class LoginController extends BaseReactController {
     captchaImg: "",
     captchaId: "",
     wrongTime: 0,
-    getTimes: 0,
+    preEmail: "",
   };
 
   formRef: RefObject<FormInstance> = React.createRef();
@@ -48,9 +47,6 @@ export default class LoginController extends BaseReactController {
   }
 
   onFinish = async (values: LoginUser) => {
-    if (this.state.getTimes === 0) {
-      await this.getWrongTime();
-    }
     if (this.state.wrongTime > 4) {
       const { captchaId } = this.state;
       values = {
@@ -86,7 +82,6 @@ export default class LoginController extends BaseReactController {
     if (wrongTime) {
       this.setState({
         wrongTime,
-        getTimes: 1,
       });
       if (wrongTime > 4) {
         this.refreshCaptchaImg();
@@ -96,13 +91,23 @@ export default class LoginController extends BaseReactController {
 
   getWrongTime = async () => {
     const email = this.formRef.current.getFieldValue(emailField);
-    const wrongTime = await this.loginModel.getWrongTime(email);
-    this.handleWrongTime(wrongTime);
+    const res = await this.loginModel.getWrongTime(email);
+    if (res.code === SuccessCode) {
+      this.handleWrongTime(res.data);
+    } else {
+      message.error(res.message);
+    }
   };
 
   handleBlur = async () => {
-    if (this.state.getTimes === 0) {
-      this.getWrongTime();
+    const email = this.formRef.current.getFieldValue(emailField);
+    if (email !== this.state.preEmail) {
+      this.setState({
+        preEmail: email,
+      });
+      if (email) {
+        this.getWrongTime();
+      }
     }
   };
 
@@ -112,12 +117,12 @@ export default class LoginController extends BaseReactController {
       <>
         <h1 className={styles.title}>{LoginText}</h1>
         <Form ref={this.formRef} className={styles.loginForm} name="login" onFinish={this.onFinish} autoComplete="off">
-          <Form.Item label={EmailText} name={emailField} rules={[{ required: true, message: noEmail }]}>
-            <Input placeholder={InputEmailOrUsername} />
+          <Form.Item label={EmailText} name={emailField} rules={[{ required: true, message: InputEmailOrUsername }]}>
+            <Input allowClear placeholder={InputEmailOrUsername} onBlur={this.handleBlur} />
           </Form.Item>
 
           <Form.Item label={PasswordText} name={passwordField} rules={[{ required: true, message: noPassword }]}>
-            <Input.Password visibilityToggle={false} onBlur={this.handleBlur} />
+            <Input.Password allowClear visibilityToggle={false} />
           </Form.Item>
 
           {wrongTime > 4 && (

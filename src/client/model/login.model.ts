@@ -21,7 +21,7 @@ export class LoginModel extends BaseReactModel<{}> {
     return respJson.data;
   }
 
-  async getWrongTime(email: string): Promise<number> {
+  async getWrongTime(email: string): Promise<ReturnInterface<number>> {
     const resp = await this.joyFetchService.fetchApi("/getWrongTime?email=" + email);
     const respJson = await resp.json();
     return respJson.data;
