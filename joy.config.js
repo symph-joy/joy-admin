@@ -20,4 +20,5 @@ module.exports = {
     email: "admin123@123.com",
     password: "123456",
   },
+  domain: 'localhost'
 };

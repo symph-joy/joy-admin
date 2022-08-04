@@ -40,10 +40,10 @@ export default class LoginController extends BaseReactController {
   formRef: RefObject<FormInstance> = React.createRef();
 
   async componentDidMount() {
-    const token = localStorage.getItem("token");
-    if (token) {
-      location.href = "/menu";
-    }
+    // const token = ;
+    // if (token) {
+    //   location.href = "/menu";
+    // }
   }
 
   onFinish = async (values: LoginUser) => {
@@ -60,9 +60,8 @@ export default class LoginController extends BaseReactController {
     const res = await this.loginModel.login(values);
     if (res.code === SuccessCode) {
       message.success(res.message);
-      localStorage.setItem("token", res.data as string);
       setTimeout(() => {
-        this.props.navigate("/menu");
+        // this.props.navigate("/menu");
       }, 1000);
     } else {
       this.handleWrongTime(res.data as number);

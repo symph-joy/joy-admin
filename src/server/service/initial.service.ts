@@ -7,6 +7,7 @@ import { UserService } from "./user.service";
 import { emailActiveField, emailField, passwordField, roleField, usernameField } from "../../utils/apiField";
 import { RoleService } from "./role.service";
 import { Value } from "@symph/config";
+import crypto from "crypto";
 
 @Component()
 export class InitialService implements IComponentLifecycle {
@@ -30,7 +31,7 @@ export class InitialService implements IComponentLifecycle {
       values[emailField] = this.adminOptions.email;
       values[roleField] = RoleEnum.Admin;
       values[emailActiveField] = false;
-      values[passwordField] = bcrypt.hashSync(this.adminOptions.password, bcrypt.genSaltSync(10));
+      values[passwordField] = crypto.createHash("md5").update(this.adminOptions.password).digest("hex");;
       this.userService.addUser(values);
     }
   }
