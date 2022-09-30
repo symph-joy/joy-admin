@@ -21,6 +21,7 @@ import { LoginModel } from "../../model/login.model";
 import { CaptchaModel } from "../../model/captcha.model";
 import { passwordField, captchaField, rememberPasswordField, emailField } from "../../../utils/apiField";
 import { LoginUser } from "../../../utils/common.interface";
+import CheckTokenNavigator from "../../components/CheckTokenNavigator";
 
 @ReactController()
 export default class LoginController extends BaseReactController {
@@ -39,12 +40,15 @@ export default class LoginController extends BaseReactController {
 
   formRef: RefObject<FormInstance> = React.createRef();
 
-  async componentDidMount() {
-    // const token = ;
-    // if (token) {
-    //   location.href = "/menu";
-    // }
-  }
+  // async componentDidMount(): Promise<void> {
+  //   const res = await this.loginModel.checkToken();
+  //   console.log(res)
+  //   //     if (respJson.code === SuccessCode) {
+  //   //   await this.userModel.setUser(respJson.data);
+  //   //   // todo: 改成路由跳转
+  //   //   location.href = "/menu";
+  //   // }
+  // }
 
   onFinish = async (values: LoginUser) => {
     if (this.state.wrongTime > 4) {
@@ -61,7 +65,7 @@ export default class LoginController extends BaseReactController {
     if (res.code === SuccessCode) {
       message.success(res.message);
       setTimeout(() => {
-        // this.props.navigate("/menu");
+        this.props.navigate("/menu");
       }, 1000);
     } else {
       this.handleWrongTime(res.data as number);
@@ -114,6 +118,7 @@ export default class LoginController extends BaseReactController {
     const { captchaImg, wrongTime } = this.state;
     return (
       <>
+      <CheckTokenNavigator />
         <h1 className={styles.title}>{LoginText}</h1>
         <Form ref={this.formRef} className={styles.loginForm} name="login" onFinish={this.onFinish} autoComplete="off">
           <Form.Item label={EmailText} name={emailField} rules={[{ required: true, message: InputEmailOrUsername }]}>

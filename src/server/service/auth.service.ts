@@ -18,24 +18,23 @@ export class AuthService implements IComponentLifecycle {
   @Value({ configKey: "secret" })
   public secret: string;
 
+  @Value({ configKey: "tokenConfig" })
+  public tokenConfig: { exp: number; rememberExp: number };
+
   initialize() {}
 
   public generateToken(userId: ObjectID, rememberPassword: boolean, changePasswordTimes: number): string {
-    const created = Math.floor(Date.now() / 1000);
     // Token 数据
     const payload = {
       userId,
-      exp: created + 60 * 60 * 1, // 默认1h
-      iat: created,
+      exp: this.tokenConfig.exp,
       changePasswordTimes,
     };
     if (rememberPassword) {
-      payload.exp = created + 60 * 60 * 24 * 7;
+      payload.exp = this.tokenConfig.rememberExp;
     }
-    // 密钥
-    const secret = this.secret;
     // 签发 Token
-    const token = jwt.sign(payload, secret);
+    const token = jwt.sign(payload, this.secret);
     return token;
   }
 
@@ -57,14 +56,11 @@ export class AuthService implements IComponentLifecycle {
         const user = await this.userService.getUserByOptions({ _id: new ObjectId(decoded.userId) });
         if (user) {
           if (user.changePasswordTimes === decoded.changePasswordTimes) {
-            const date = Math.floor(Date.now() / 1000);
-            if (date < decoded.exp) {
-              return {
-                message: CheckSuccess,
-                code: SuccessCode,
-                data: user,
-              };
-            }
+            return {
+              message: CheckSuccess,
+              code: SuccessCode,
+              data: user,
+            };
           }
         }
         return {

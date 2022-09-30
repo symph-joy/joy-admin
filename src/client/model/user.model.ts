@@ -21,20 +21,27 @@ export class UserModel extends BaseReactModel<{
   }
 
   async getUser(): Promise<void> {
-    const token = localStorage.getItem("token");
-    const resp = await this.joyFetchService.fetchApi("/getUser?token=" + token);
+    const resp = await this.joyFetchService.fetchApi("/getUser");
     const respJson = await resp.json();
     const res = respJson.data;
     if (res.code === SuccessCode) {
       this.setState({
         user: res.data,
       });
+      // login页跳到menu
+      if (document.location.pathname === "/login") {
+        setTimeout(() => {
+          location.href = "/menu";
+        }, 1000);
+      }
     } else {
-      message.error(res.message);
-      localStorage.removeItem("token");
-      setTimeout(() => {
-        location.href = "/login";
-      }, 1000);
+      // 非login页跳到login
+      if (document.location.pathname !== "/login") {
+        message.error(res.message);
+        setTimeout(() => {
+          location.href = "/login";
+        }, 1000);
+      }
     }
   }
 
@@ -45,13 +52,11 @@ export class UserModel extends BaseReactModel<{
   }
 
   async updateUserMessage(values: ChangeUserInterface): Promise<void> {
-    const token = localStorage.getItem("token");
     const resp = await this.joyFetchService.fetchApi("/updateUserMessage", {
       method: "POST",
       body: JSON.stringify({
         userId: this.state.user?._id,
         ...values,
-        token,
       }),
     });
     const respJson = await resp.json();

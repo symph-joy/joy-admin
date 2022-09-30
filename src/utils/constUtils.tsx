@@ -37,6 +37,7 @@ export const SuccessCode = 10000;
 export const NotExistCode = 10002;
 export const RegisterSuccess = "注册成功";
 export const LoginSuccess = "登录成功";
+export const LogoutSuccess = "推出成功";
 export const GetSuccess = "获取成功";
 export const CheckSuccess = "验证成功";
 export const RegisterFail = "注册失败，请重试";
@@ -53,6 +54,7 @@ export const NotExistUsernameOrEmail = "用户名或邮箱不存在";
 export const NotExistUser = "用户不存在，请重新登录";
 export const ExpiredUser = "登录过期，请重新登录";
 export const WrongToken = "无效的token，请重新登录";
+export const NotExistToken ='token为空'
 export const NotExistCaptcha = "验证码已过期，请刷新";
 export const ExpiredEmailCode = "激活码已过期，请重新发送激活码";
 export const EmailCodeRight = "激活码正确";
@@ -80,6 +82,8 @@ export const EditUser = "编辑用户";
 export const Add = "新增";
 export const EmailActiveStatus = "激活状态";
 export const EditText = "编辑";
+export const ReferWrong = '来源错误'
+
 export default class constUtils {
   static toArray(enumType) {
     const a = [];

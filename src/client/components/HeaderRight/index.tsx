@@ -23,8 +23,8 @@ export default class HeaderRight extends BaseReactController {
   }
 
   handleLogout = async () => {
-    localStorage.removeItem("token");
-    this.userModel.setUser(null)
+    document.cookie = "token=;expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    this.userModel.setUser(null);
     this.props.navigate("/login");
   };
 

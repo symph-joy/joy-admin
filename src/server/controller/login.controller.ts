@@ -1,14 +1,15 @@
-import { Controller, Post, Body, Get, Query, ServerApplication, Res } from "@symph/server";
+import { Controller, Post, Body, Get, Query, ServerApplication, Res, Request, UseGuards } from "@symph/server";
 import { LoginService } from "../service/login.service";
-import { ControllerReturn } from "../../utils/common.interface";
+import { ControllerReturn, ReturnInterface } from "../../utils/common.interface";
 import { AccountService } from "../service/account.service";
-import { NotExistCode, SuccessCode, NotExistUsernameOrEmail, GetSuccess } from "../../utils/constUtils";
+import { NotExistCode, SuccessCode, NotExistUsernameOrEmail, GetSuccess, LogoutSuccess } from "../../utils/constUtils";
 import type { FastifyReply } from "fastify";
 import fastifyCookie from "fastify-cookie";
 import { Value } from "@symph/config";
-import { FastifyAdapter } from "@symph/server/dist/platform/fastify";
 import { rememberPasswordField } from "../../utils/apiField";
-import * as cookieParser from "cookie-parser";
+import { AuthGuard } from "../guard/auth.guard";
+import { UserDB } from "../../utils/entity/UserDB";
+import type { FastifyRequest } from "fastify";
 
 @Controller()
 export class DocsController {
@@ -18,12 +19,19 @@ export class DocsController {
   constructor(private httpServer: ServerApplication, private loginService: LoginService, private accountService: AccountService) {}
 
   initialize(): Promise<void> | void {
-    // (this.httpServer.getHttpAdapter() as FastifyAdapter).register(fastifyCookie, { secret: "my-secret-001" });
-    this.httpServer.use(cookieParser.default());
+    this.httpServer.getHttpAdapter().getInstance().register(fastifyCookie, { secret: "my-secret-001" });
+  }
+
+  // 验证token
+  @Get("/checkToken")
+  @UseGuards(AuthGuard)
+  async checkToken(@Request() req: FastifyRequest): Promise<ReturnInterface<UserDB>> {
+    console.log(req.params, "checkToken");
+    return req.params as ReturnInterface<UserDB>;
   }
 
   @Post("/login")
-  async login(@Body() values: string, @Res({ passthrough: true }) res): Promise<ControllerReturn<string | number>> {
+  async login(@Body() values: string, @Res({ passthrough: true }) res: FastifyReply): Promise<ControllerReturn<string | number>> {
     const data = await this.loginService.login(JSON.parse(values));
     if (data.code === SuccessCode) {
       const token = data.data;
@@ -31,14 +39,25 @@ export class DocsController {
         const date = new Date().getTime();
         // const expiresTime = new Date(date + 60 * 1000 * 60 * 24 * 7);
         const expiresTime = new Date(date + 60 * 1000 * 60);
-        // res.setCookie("token", token, { expires: expiresTime, domain: this.domain });
+        res.setCookie("token", token, { domain: this.domain, path: "/", httpOnly: true, expires: expiresTime });
       } else {
-        // res.setCookie("token", token, { domain: this.domain });
+        // 期限为一个session
+        res.setCookie("token", token, { domain: this.domain, path: "/", httpOnly: true });
       }
-      res.cookie("token", token);
     }
     return {
       data,
+    };
+  }
+
+  @Post("/logout")
+  async logout(@Res({ passthrough: true }) res: FastifyReply): Promise<ControllerReturn<undefined>> {
+    res.setCookie("token", "", { domain: this.domain, path: "/", expires: "Thu, 01 Jan 1970 00:00:00 UTC" });
+    return {
+      data: {
+        code: SuccessCode,
+        message: LogoutSuccess,
+      },
     };
   }
 

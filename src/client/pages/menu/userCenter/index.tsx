@@ -43,13 +43,14 @@ export default class UserCenter extends BaseReactController {
 
   async componentDidMount(): Promise<void> {
     const { user } = this.userModel.state;
-    if (!user) {
-      await this.userModel.getUser();
-    }
-    this.formRef.current.setFieldsValue({
-      username: this.userModel.state.user?.username,
-      email: this.userModel.state.user?.email,
-    });
+    console.log("userCenter:", user);
+    // if (!user) {
+    //   await this.userModel.getUser();
+    // }
+    // this.formRef.current.setFieldsValue({
+    //   username: this.userModel.state.user?.username,
+    //   email: this.userModel.state.user?.email,
+    // });
   }
 
   onFinish = async (values: ChangeUserInterface) => {
